@@ -2,7 +2,10 @@
 name = "Codejam"
 version = "0.1.0"
 description = ""
-authors = ["collerek <collerek@gmail.com>", "hyturtle <mulov10d@duck.com>", "jessevz <jessevanzutphen7@hotmail.com>"]
+authors = [
+    "collerek <collerek@gmail.com>", "hyturtle <mulov10d@duck.com>", "jessevz <jessevanzutphen7@hotmail.com>",
+    "DominikKor <droko@gmx.de>"
+]
 license = "MIT"
 
 [tool.poetry.dependencies]
