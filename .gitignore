@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 
+# test and mypy caches
+.mypy_cache/
+.pytest_cache/
+
 # Environment specific
 .venv
 venv
