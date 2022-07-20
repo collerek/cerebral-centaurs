@@ -4,13 +4,13 @@ on:
   push:
   pull_request:
     branches: [ main ]
+    types: [ opened ]
 concurrency: build-${{ github.sha }}
 
 jobs:
   tests:
     name: "Python ${{ matrix.python-version }}"
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     strategy:
       matrix:
         python-version: [ "3.10" ]
