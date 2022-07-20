@@ -29,4 +29,4 @@ jobs:
         env:
           POETRY_VIRTUALENVS_CREATE: false
       - name: Run tests
-        run: poetry run pytest tests --ignore venv --cov=codejam --cov=tests --cov-report=term-missing #--cov-fail-under=100
+        run: poetry run pytest tests --ignore venv --cov=codejam --cov=tests --cov-report=term-missing --cov-fail-under=100
