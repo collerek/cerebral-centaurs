@@ -4,6 +4,7 @@ on:
   push:
   pull_request:
     branches: [ main ]
+concurrency: build-${{ github.sha }}
 
 jobs:
   tests:
@@ -24,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install poetry==1.1.11
-          poetry install --extras "all"
+          poetry install
         env:
           POETRY_VIRTUALENVS_CREATE: false
       - name: Run tests
