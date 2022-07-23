@@ -91,14 +91,15 @@ class WS(BoxLayout):
                 Line(points=parsed["data"]["line"], width=2)
 
 
-async def run_app_happily(root, web_socket):
+async def run_app_happily(root, web_socket_send, web_socket_receive):
     """Run kivy on the asyncio loop"""
     await async_runTouchApp(root, async_lib="asyncio")
     print("App done")
-    web_socket.cancel()
+    web_socket_send.cancel()
+    web_socket_receive.cancel()
 
 
-async def run_websocket_client(root):
+async def run_websocket_send(root):
     """Runs the websocket client and send messages"""
     url = "ws://127.0.0.1:8000/ws/{0}"
     async with websockets.connect(url.format(client_id)) as websocket:
@@ -106,9 +107,23 @@ async def run_websocket_client(root):
             while True:
                 if m := root.message:
                     root.message = ""
+                    print("sending " + m)
                     await websocket.send(m)
                 await asyncio.sleep(1 / 60)
+        except asyncio.CancelledError as e:
+            print("Loop canceled", e)
+        finally:
+            print("Loop finished")
+
+
+async def run_websocket_receive(root):
+    """Runs the websocket client and send messages"""
+    url = "ws://127.0.0.1:8000/ws/{0}"
+    async with websockets.connect(url.format(client_id)) as websocket:
+        try:
+            while True:
                 root.received = await websocket.recv()
+                await asyncio.sleep(1 / 60)
         except asyncio.CancelledError as e:
             print("Loop canceled", e)
         finally:
@@ -120,8 +135,13 @@ if __name__ == "__main__":
     def main():
         """Run the methods asynchronously"""
         root = Builder.load_string(kv)
-        web_socket = asyncio.ensure_future(run_websocket_client(root))
-        return asyncio.gather(run_app_happily(root, web_socket), web_socket)
+        web_socket_send = asyncio.ensure_future(run_websocket_send(root))
+        web_socket_receive = asyncio.ensure_future(run_websocket_receive(root))
+        return asyncio.gather(
+            run_app_happily(root, web_socket_receive, web_socket_send),
+            web_socket_send,
+            web_socket_receive,
+        )
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())

@@ -41,6 +41,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
     try:
         while True:
             data = await websocket.receive_json()
+            print(data)
             await manager.broadcast({"client_id": client_id, "data": data})
     except WebSocketDisconnect:
         manager.disconnect(websocket)
