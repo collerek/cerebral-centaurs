@@ -35,6 +35,17 @@ poetry run pre-commit run --all-files
 poetry run pytest tests --cov=codejam --cov=tests --cov-report=term-missing
 ```
 
+## Project launch
+Run the server
+```bash
+poetry run uvicorn codejam.run:app --reload
+```
+
+Start the clients in separate windows
+```bash
+poetry run python codejam/client.py
+```
+
 ## Tools brief summary
 
 ### flake8: general style rules

@@ -1,10 +1,11 @@
 import json
+import random
 from threading import Thread
 
 import websocket
 from kivy.app import App
-from kivy.clock import Clock
-from kivy.graphics import Line
+from kivy.clock import Clock, mainthread
+from kivy.graphics import Color, Line, Rectangle
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty
@@ -34,7 +35,9 @@ class TestCanvas(Widget):
     def on_touch_down(self, touch):
         """Called when a touch down event occurs"""
         if self.collide_point(*touch.pos):
+            color = (random.random(), 1, 1)
             with self.canvas:
+                Color(*color, mode="hsv")
                 touch.ud["line"] = Line(points=(touch.x, touch.y), width=2)
 
     def on_touch_move(self, touch):
@@ -61,6 +64,26 @@ class KivyWebSocket(websocket.WebSocketApp):
 class WS(BoxLayout):
     """WS"""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with self.canvas.before:
+            if "bg_color" in kwargs:
+                bg_rgba = kwargs["bg_color"]
+                if len(bg_rgba) == 4:
+                    Color(bg_rgba[0], bg_rgba[1], bg_rgba[2], bg_rgba[3])
+                elif len(bg_rgba) == 3:
+                    Color(bg_rgba[0], bg_rgba[1], bg_rgba[2])
+                else:
+                    Color(0, 0, 0, 1)
+            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
+
+            def update_rect(instance, value):
+                instance.bg_rect.pos = instance.pos
+                instance.bg_rect.size = instance.size
+
+            # listen to size and position changes
+            self.bind(pos=update_rect, size=update_rect)
+
     pressed = False
 
     def run(self):
@@ -76,13 +99,14 @@ class WebSocketTest(App):
     """Base App Class"""
 
     ws = None
-    url = "ws://127.0.0.1:8000/ws"
+    url = "ws://127.0.0.1:8000/ws/{0}"
     btn_text = StringProperty("Connect to WebSocket")
     layout = ObjectProperty(None)
 
     def __init__(self, **kwargs):
+        self.client_id = random.randint(1000000, 10000000)
         super(WebSocketTest, self).__init__(**kwargs)
-        socket_server = self.url
+        socket_server = self.url.format(self.client_id)
         ws = KivyWebSocket(
             socket_server,
             on_message=self.on_ws_message,
@@ -96,12 +120,25 @@ class WebSocketTest(App):
 
     def build(self):
         """Returns the root widget"""
-        return WS()
+        self.root = WS()
+        self.root.run()
+        return self.root
 
     def on_ws_message(self, ws, message):
         """Called when a message is received"""
+        print(json.loads(message))
         self.btn_text = message
         self.logger.info("WebSocket: {}".format(message))
+        self.update_line(message)
+
+    @mainthread
+    def update_line(self, message: str):
+        """Update lines from other clients"""
+        app = App.get_running_app()
+        parsed = json.loads(message)
+        if parsed["client_id"] != self.client_id:
+            with app.root.canvas:
+                Line(points=parsed["data"]["line"], width=2)
 
     def on_ws_error(self, ws, error):
         """Called when the websocket has an error"""
