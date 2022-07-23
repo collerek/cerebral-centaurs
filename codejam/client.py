@@ -1,32 +1,30 @@
+import asyncio
 import json
 import random
-from threading import Thread
 
-import websocket
-from kivy.app import App
-from kivy.clock import Clock, mainthread
+import websockets
+from kivy.app import async_runTouchApp
 from kivy.graphics import Color, Line, Rectangle
-from kivy.lang import Builder
-from kivy.logger import Logger
+from kivy.lang.builder import Builder
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
 kv = """
-<WS>:
+WS:
     orientation: 'vertical'
-    Button:
+    Label:
+        color: 1, 0, 1, 1
         size_hint_y: .25
-        font_size: dp(8)
+        font_size: dp(10)
         text_size: self.width, None
         texture_size: self.size
         halign: 'center'
-        text: app.btn_text
-        on_release: root.run()
+        text: root.btn_text
     TestCanvas:
 """
 
-Builder.load_string(kv)
+client_id = random.randint(1000000, 10000000)
 
 
 class TestCanvas(Widget):
@@ -49,20 +47,16 @@ class TestCanvas(Widget):
     def on_touch_up(self, touch):
         """Called when a touch up event occurs"""
         if touch.ud.get("line"):
-            App.get_running_app().ws.send(json.dumps({"line": touch.ud["line"].points}))
-
-
-class KivyWebSocket(websocket.WebSocketApp):
-    """KivyWebSocket"""
-
-    def __init__(self, *args, **kwargs):
-        super(KivyWebSocket, self).__init__(*args, **kwargs)
-        self.logger = Logger
-        self.logger.info("WebSocket: logger initialized")
+            self.parent.message = json.dumps({"line": touch.ud["line"].points})
 
 
 class WS(BoxLayout):
     """WS"""
+
+    btn_text = StringProperty("WebSocket Connected")
+    layout = ObjectProperty(None)
+    message = StringProperty("")
+    received = StringProperty("")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -84,84 +78,51 @@ class WS(BoxLayout):
             # listen to size and position changes
             self.bind(pos=update_rect, size=update_rect)
 
-    pressed = False
+    def on_received(self, instance, value):
+        """Called when received message"""
+        self.btn_text = value
+        self.update_line(value)
 
-    def run(self):
-        """Called on button release"""
-        if not self.pressed:
-            self.pressed = True
-            app = App.get_running_app()
-            app.btn_text = "Connecting to WebSocket"
-            Clock.schedule_once(app.ws_connection)
-
-
-class WebSocketTest(App):
-    """Base App Class"""
-
-    ws = None
-    url = "ws://127.0.0.1:8000/ws/{0}"
-    btn_text = StringProperty("Connect to WebSocket")
-    layout = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        self.client_id = random.randint(1000000, 10000000)
-        super(WebSocketTest, self).__init__(**kwargs)
-        socket_server = self.url.format(self.client_id)
-        ws = KivyWebSocket(
-            socket_server,
-            on_message=self.on_ws_message,
-            on_error=self.on_ws_error,
-            on_open=self.on_ws_open,
-            on_close=self.on_ws_close,
-        )
-        self.ws = ws
-        self.logger = Logger
-        self.logger.info("App: initiallzed")
-
-    def build(self):
-        """Returns the root widget"""
-        self.root = WS()
-        self.root.run()
-        return self.root
-
-    def on_ws_message(self, ws, message):
-        """Called when a message is received"""
-        print(json.loads(message))
-        self.btn_text = message
-        self.logger.info("WebSocket: {}".format(message))
-        self.update_line(message)
-
-    @mainthread
     def update_line(self, message: str):
         """Update lines from other clients"""
-        app = App.get_running_app()
         parsed = json.loads(message)
-        if parsed["client_id"] != self.client_id:
-            with app.root.canvas:
+        if parsed["client_id"] != client_id:
+            with self.canvas:
                 Line(points=parsed["data"]["line"], width=2)
 
-    def on_ws_error(self, ws, error):
-        """Called when the websocket has an error"""
-        self.logger.info("WebSocket: [ERROR]  {}".format(error))
 
-    def ws_connection(self, dt, **kwargs):
-        """Called to start the websocket connection"""
-        self.ws_thread = Thread(target=self.ws.run_forever)
-        self.ws_thread.daemon = True
-        self.ws_thread.start()
+async def run_app_happily(root, web_socket):
+    """Run kivy on the asyncio loop"""
+    await async_runTouchApp(root, async_lib="asyncio")
+    print("App done")
+    web_socket.cancel()
 
-    def on_ws_open(self, ws):
-        """Called when the websocket is opened"""
-        self.btn_text = "Connection Open"
 
-    def on_ws_close(self, ws, *args):
-        """Called when the websocket is stopped"""
-        self.btn_text = "Connection Closed"
-
-    def on_stop(self):
-        """Called when the app is stopped"""
-        self.ws.keep_running = False
+async def run_websocket_client(root):
+    """Runs the websocket client and send messages"""
+    url = "ws://127.0.0.1:8000/ws/{0}"
+    async with websockets.connect(url.format(client_id)) as websocket:
+        try:
+            while True:
+                if m := root.message:
+                    root.message = ""
+                    await websocket.send(m)
+                    root.received = await websocket.recv()
+                await asyncio.sleep(1 / 60)
+        except asyncio.CancelledError as e:
+            print("Loop canceled", e)
+        finally:
+            print("Loop finished")
 
 
 if __name__ == "__main__":
-    WebSocketTest().run()
+
+    def main():
+        """Run the methods asynchronously"""
+        root = Builder.load_string(kv)
+        web_socket = asyncio.ensure_future(run_websocket_client(root))
+        return asyncio.gather(run_app_happily(root, web_socket), web_socket)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    loop.close()
