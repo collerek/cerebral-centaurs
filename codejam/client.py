@@ -107,8 +107,8 @@ async def run_websocket_client(root):
                 if m := root.message:
                     root.message = ""
                     await websocket.send(m)
-                    root.received = await websocket.recv()
                 await asyncio.sleep(1 / 60)
+                root.received = await websocket.recv()
         except asyncio.CancelledError as e:
             print("Loop canceled", e)
         finally:
