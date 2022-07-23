@@ -50,11 +50,8 @@ class TestCanvas(Widget):
         if self.collide_point(*touch.pos):
             with self.canvas:
                 touch.ud["line"].points += (touch.x, touch.y)
-
-    def on_touch_up(self, touch):
-        """Called when a touch up event occurs"""
-        if touch.ud.get("line"):
-            self.parent.message = json.dumps({"line": touch.ud["line"].points})
+            if touch.ud.get("line"):
+                self.parent.message = json.dumps({"line": touch.ud["line"].points})
 
 
 class WS(BoxLayout):
