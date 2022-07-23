@@ -78,15 +78,14 @@ class WS(BoxLayout):
                 Line(points=parsed["data"]["line"], width=2)
 
 
-async def run_app_happily(root, web_socket_send, web_socket_receive):
+async def run_app_happily(root, web_socket):
     """Run kivy on the asyncio loop"""
     await async_runTouchApp(root, async_lib="asyncio")
     print("App done")
-    web_socket_send.cancel()
-    web_socket_receive.cancel()
+    web_socket.cancel()
 
 
-async def run_websocket_send(root):
+async def run_websocket(root):
     """Runs the websocket client and send messages"""
     url = "ws://127.0.0.1:8000/ws/{0}"
     async with websockets.connect(url.format(client_id)) as websocket:
@@ -96,20 +95,12 @@ async def run_websocket_send(root):
                     root.message = ""
                     print("sending " + m)
                     await websocket.send(m)
-                await asyncio.sleep(1 / 60)
-        except asyncio.CancelledError as e:
-            print("Loop canceled", e)
-        finally:
-            print("Loop finished")
-
-
-async def run_websocket_receive(root):
-    """Runs the websocket client and send messages"""
-    url = "ws://127.0.0.1:8000/ws/{0}"
-    async with websockets.connect(url.format(client_id)) as websocket:
-        try:
-            while True:
-                root.received = await websocket.recv()
+                try:
+                    root.received = await asyncio.wait_for(
+                        websocket.recv(), timeout=1 / 60
+                    )
+                except asyncio.exceptions.TimeoutError:
+                    continue
                 await asyncio.sleep(1 / 60)
         except asyncio.CancelledError as e:
             print("Loop canceled", e)
@@ -122,12 +113,10 @@ if __name__ == "__main__":
     def main():
         """Run the methods asynchronously"""
         root = Builder.load_string(kv)
-        web_socket_send = asyncio.ensure_future(run_websocket_send(root))
-        web_socket_receive = asyncio.ensure_future(run_websocket_receive(root))
+        web_socket = asyncio.ensure_future(run_websocket(root))
         return asyncio.gather(
-            run_app_happily(root, web_socket_receive, web_socket_send),
-            web_socket_send,
-            web_socket_receive,
+            run_app_happily(root, web_socket),
+            web_socket,
         )
 
     loop = asyncio.get_event_loop()
