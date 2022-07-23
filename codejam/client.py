@@ -1,12 +1,12 @@
 import asyncio
 import json
-import random
+from random import randint, random
 
 import websockets
 from kivy.app import async_runTouchApp
 from kivy.graphics import Color, Line
 from kivy.lang.builder import Builder
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
@@ -31,18 +31,19 @@ WS:
     TestCanvas:
 """
 
-client_id = random.randint(1000000, 10000000)
+client_id = randint(1000000, 10000000)
 
 
 class TestCanvas(Widget):
     """TestCanvas Widget"""
 
+    colour = ListProperty([random(), 1, 1])
+
     def on_touch_down(self, touch):
         """Called when a touch down event occurs"""
         if self.collide_point(*touch.pos):
-            color = (random.random(), 1, 1)
             with self.canvas:
-                Color(*color, mode="hsv")
+                Color(*self.colour, mode="hsv")
                 touch.ud["line"] = Line(points=(touch.x, touch.y), width=2)
 
     def on_touch_move(self, touch):
@@ -51,7 +52,9 @@ class TestCanvas(Widget):
             if touch.ud.get("line"):
                 with self.canvas:
                     touch.ud["line"].points += (touch.x, touch.y)
-                self.parent.message = json.dumps({"line": touch.ud["line"].points[-4:]})
+                self.parent.message = json.dumps(
+                    {"line": touch.ud["line"].points[-4:], "colour": self.colour}
+                )
 
 
 class WS(BoxLayout):
@@ -72,6 +75,7 @@ class WS(BoxLayout):
         parsed = json.loads(message)
         if parsed["client_id"] != client_id:
             with self.canvas:
+                Color(hsv=parsed["data"]["colour"])
                 Line(points=parsed["data"]["line"], width=2)
 
 
