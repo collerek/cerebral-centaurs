@@ -4,7 +4,7 @@ import random
 
 import websockets
 from kivy.app import async_runTouchApp
-from kivy.graphics import Color, Line, Rectangle
+from kivy.graphics import Color, Line
 from kivy.lang.builder import Builder
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -12,6 +12,13 @@ from kivy.uix.widget import Widget
 
 kv = """
 WS:
+    bg_color: 0, 0, 0, 1
+    canvas.before:
+        Color:
+            rgba: self.bg_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
     orientation: 'vertical'
     Label:
         color: 1, 0, 1, 1
@@ -57,26 +64,6 @@ class WS(BoxLayout):
     layout = ObjectProperty(None)
     message = StringProperty("")
     received = StringProperty("")
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        with self.canvas.before:
-            if "bg_color" in kwargs:
-                bg_rgba = kwargs["bg_color"]
-                if len(bg_rgba) == 4:
-                    Color(bg_rgba[0], bg_rgba[1], bg_rgba[2], bg_rgba[3])
-                elif len(bg_rgba) == 3:
-                    Color(bg_rgba[0], bg_rgba[1], bg_rgba[2])
-                else:
-                    Color(0, 0, 0, 1)
-            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
-
-            def update_rect(instance, value):
-                instance.bg_rect.pos = instance.pos
-                instance.bg_rect.size = instance.size
-
-            # listen to size and position changes
-            self.bind(pos=update_rect, size=update_rect)
 
     def on_received(self, instance, value):
         """Called when received message"""
