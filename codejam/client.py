@@ -51,7 +51,7 @@ class TestCanvas(Widget):
             with self.canvas:
                 touch.ud["line"].points += (touch.x, touch.y)
             if touch.ud.get("line"):
-                self.parent.message = json.dumps({"line": touch.ud["line"].points})
+                self.parent.message = json.dumps({"line": touch.ud["line"].points[-4:]})
 
 
 class WS(BoxLayout):
