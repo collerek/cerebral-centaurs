@@ -48,9 +48,9 @@ class TestCanvas(Widget):
     def on_touch_move(self, touch):
         """Called when a touch move event occurs"""
         if self.collide_point(*touch.pos):
-            with self.canvas:
-                touch.ud["line"].points += (touch.x, touch.y)
             if touch.ud.get("line"):
+                with self.canvas:
+                    touch.ud["line"].points += (touch.x, touch.y)
                 self.parent.message = json.dumps({"line": touch.ud["line"].points[-4:]})
 
 
