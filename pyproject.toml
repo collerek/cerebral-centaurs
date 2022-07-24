@@ -10,6 +10,11 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "3.10.*"
+fastapi = "^0.79.0"
+uvicorn = {extras = ["standard"], version = "^0.18.2"}
+Kivy = "^2.1.0"
+pytest-asyncio = "^0.19.0"
+pytest-mock = "^3.8.2"
 
 [tool.poetry.dev-dependencies]
 # Base tools
