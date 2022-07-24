@@ -1,0 +1,22 @@
+WhiteBoard:
+    message: root.message
+    bg_color: 0, 0, 0, 1
+    canvas.before:
+        Color:
+            rgba: self.bg_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    orientation: 'vertical'
+    Label:
+        id: label
+        color: 1, 0, 1, 1
+        size_hint_y: .25
+        font_size: dp(10)
+        text_size: self.width, None
+        texture_size: self.size
+        halign: 'center'
+        text: root.btn_text
+    TestCanvas:
+        id: canvas
+        colour: self.colour

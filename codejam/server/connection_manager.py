@@ -1,11 +1,6 @@
 from typing import Dict, List
 
-from fastapi import FastAPI, WebSocket
-
-# Create application
-from starlette.websockets import WebSocketDisconnect
-
-app = FastAPI(title="WebSocket Example")
+from starlette.websockets import WebSocket
 
 
 class ConnectionManager:
@@ -28,20 +23,3 @@ class ConnectionManager:
         """Broadcast the message to all active clients"""
         for connection in self.active_connections:
             await connection.send_json(message)
-
-
-manager = ConnectionManager()
-
-
-@app.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: int):
-    """WebSocket Endpoint"""  # noqa: D403
-    print("Accepting client connection...")
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_json()
-            print(data)
-            await manager.broadcast({"client_id": client_id, "data": data})
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
