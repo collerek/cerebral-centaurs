@@ -9,6 +9,8 @@ concurrency: build-${{ github.sha }}
 
 jobs:
   tests:
+    env:
+      DISPLAY:': 99.0'
     name: "Python ${{ matrix.python-version }}"
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'collerek/cerebral-centaurs'
@@ -18,6 +20,11 @@ jobs:
       fail-fast: false
 
     steps:
+      - name: Setup env
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install xvfb pulseaudio xsel
+          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec/usr/bin/Xvfb-: 99 -screen 0 1280x720x24 -ac + extension GLX
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
