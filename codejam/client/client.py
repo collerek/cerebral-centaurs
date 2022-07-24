@@ -4,7 +4,7 @@ import pathlib
 from random import randint, random
 
 import websockets
-from kivy.app import App, async_runTouchApp
+from kivy.app import async_runTouchApp
 from kivy.graphics import Color, Line
 from kivy.lang.builder import Builder
 from kivy.properties import ListProperty, ObjectProperty, StringProperty
@@ -62,15 +62,7 @@ class WhiteBoard(BoxLayout):
                 Line(points=parsed["data"]["line"], width=2)
 
 
-class MainApp(App):
-    """Main application"""
-
-    def build(self):
-        """Builder from whiteboards.kv"""
-        return Builder.load_file(f"{full_path}")
-
-
-root = MainApp().build()
+root = Builder.load_file(f"{full_path}")
 
 
 async def run_websocket(root):
