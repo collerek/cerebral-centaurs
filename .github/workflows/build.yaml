@@ -46,4 +46,4 @@ jobs:
           poetry show
 
       - name: Test with pytest
-        run: poetry run pytest -vv --cov=codejam --cov=tests --cov-report=term --cov-report=xml --cov-report=term-missing --cov-fail-under=100
+        run: poetry run pytest -vv --cov=codejam
