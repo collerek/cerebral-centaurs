@@ -30,4 +30,6 @@ jobs:
           poetry config virtualenvs.create false
           poetry install
       - name: Run tests
-        run: poetry run pytest tests/unit --cov=codejam --cov=tests --cov-report=term-missing --cov-fail-under=100 -vvv
+        run: |
+          source $HOME/.poetry/env
+          poetry run pytest tests/unit --cov=codejam --cov=tests --cov-report=term-missing --cov-fail-under=100 -vvv
