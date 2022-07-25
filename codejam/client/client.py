@@ -9,12 +9,14 @@ from kivy.graphics import Color, Line
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
 client_id = randint(1000000, 10000000)
 
 root_path = pathlib.Path(__file__).parent.resolve()
 full_path = root_path.joinpath("whiteboards.kv")
+main_full_path = root_path.joinpath("main.kv")
 
 
 class TestCanvas(Widget):
@@ -36,7 +38,7 @@ class TestCanvas(Widget):
             if touch.ud.get("line"):
                 with self.canvas:
                     touch.ud["line"].points += (touch.x, touch.y)
-                root.message = json.dumps(
+                root.current_screen.wb.message = json.dumps(
                     {
                         "line": touch.ud["line"].points[-4:],
                         "colour": self.colour,
@@ -67,22 +69,21 @@ class WhiteBoard(BoxLayout):
                 Line(points=parsed["data"]["line"], width=parsed["data"]["width"])
 
 
-root = Builder.load_file(f"{full_path}")
-
-
-async def run_websocket(app_root):
+async def run_websocket(screen):
     """Runs the websocket client and send messages"""
     url = "ws://127.0.0.1:8000/ws/{0}"
     try:
         async with websockets.connect(url.format(client_id)) as websocket:
             try:
                 while True:
-                    if m := app_root.message:
-                        root.message = ""
+                    if m := screen.wb.message:
+                        screen.wb.message = ""
                         print("sending " + m)
                         await websocket.send(m)
                     try:
-                        root.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)
+                        screen.wb.received = await asyncio.wait_for(
+                            websocket.recv(), timeout=1 / 60
+                        )
                     except asyncio.exceptions.TimeoutError:
                         continue
                     await asyncio.sleep(1 / 60)
@@ -94,22 +95,28 @@ async def run_websocket(app_root):
         print("Connection refused", e)
 
 
+class WhiteBoardScreen(Screen):
+    """WhiteBoardScreen"""
+
+    def on_pre_enter(self):
+        """Called when the screen is about to be shown"""
+        if not self.manager.ws:
+            self.manager.ws = asyncio.create_task(run_websocket(self))
+
+
+Builder.load_file(f"{full_path}")
+root = Builder.load_file(f"{main_full_path}")
+
+
 if __name__ == "__main__":  # pragma: no cover
 
-    async def run_app_happily(app_root, web_socket):
+    async def run_app(app_root):
         """Run kivy on the asyncio loop"""
         await async_runTouchApp(app_root, async_lib="asyncio")
         print("App done")
-        web_socket.cancel()
-
-    def main():
-        """Run the methods asynchronously"""
-        web_socket = asyncio.ensure_future(run_websocket(root))
-        return asyncio.gather(
-            run_app_happily(root, web_socket),
-            web_socket,
-        )
+        if app_root.ws:
+            app_root.ws.cancel()
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    loop.run_until_complete(run_app(root))
     loop.close()
