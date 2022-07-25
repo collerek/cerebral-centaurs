@@ -49,7 +49,9 @@ class TestCanvas(Widget):
                     game_id=game_id,
                     value=PictureMessage(
                         data=LineData(
-                            line=touch.ud["line"].points[-4:], colour=[*self.colour]
+                            line=touch.ud["line"].points[-4:],
+                            colour=[*self.colour],
+                            width=self.line_width,
                         )
                     ),
                 ).json(models_as_dict=True)
@@ -93,9 +95,7 @@ async def run_websocket(widget: WhiteBoard) -> None:
                         print("sending " + m)
                         await websocket.send(m)
                     try:
-                        widget.received = await asyncio.wait_for(
-                            websocket.recv(), timeout=1 / 60
-                        )
+                        widget.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)
                     except asyncio.exceptions.TimeoutError:
                         continue
                     await asyncio.sleep(1 / 60)

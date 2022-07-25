@@ -8,6 +8,7 @@ class LineData(BaseModel):
 
     line: List[float]
     colour: List[Union[float, int]]
+    width: int
 
 
 class PictureMessage(BaseModel):
