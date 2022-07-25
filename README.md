@@ -38,12 +38,12 @@ poetry run pytest tests --cov=codejam --cov=tests --cov-report=term-missing
 ## Project launch
 Run the server
 ```bash
-poetry run uvicorn codejam.run:app --reload
+poetry run uvicorn codejam.server.application:app --reload
 ```
 
 Start the clients in separate windows
 ```bash
-poetry run python codejam/client.py
+poetry run python codejam/client/client.py
 ```
 
 ## Tools brief summary
