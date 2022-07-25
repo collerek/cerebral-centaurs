@@ -52,7 +52,7 @@ class WebsocketMock:
 async def test_websockets(mocker, mocked_websockets):
     message = "test message"
     root_mock = mocker.Mock(message=message)
-    await run_websocket(root=root_mock)
+    await run_websocket(widget=root_mock)
 
     assert root_mock.received == message
     assert root_mock.message == ""
@@ -64,7 +64,7 @@ async def test_websockets_timeout(mocker, mocked_websockets):
     mocked_websockets.sleep = True
     message = "test message"
     root_mock = mocker.Mock(message=message)
-    await run_websocket(root=root_mock)
+    await run_websocket(widget=root_mock)
 
     assert root_mock.received == message
     assert root_mock.message == ""
@@ -76,7 +76,7 @@ async def test_websockets_refuse_connection(mocker, mocked_websockets):
     mocked_websockets.refuse_connection = True
     message = "test message"
     root_mock = mocker.Mock(message=message)
-    await run_websocket(root=root_mock)
+    await run_websocket(widget=root_mock)
     assert root_mock.message == message
     assert isinstance(root_mock.received, mocker.Mock)
     assert mocked_websockets.url == ""
@@ -87,7 +87,7 @@ async def test_websockets_cancel_loop(mocker, mocked_websockets):
     mocked_websockets.cancel = True
     message = "test message"
     root_mock = mocker.Mock(message=message)
-    await run_websocket(root=root_mock)
+    await run_websocket(widget=root_mock)
     assert root_mock.message == ""
     assert isinstance(root_mock.received, mocker.Mock)
     assert mocked_websockets.url == f"ws://127.0.0.1:8000/ws/{client_id}"
