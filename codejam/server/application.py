@@ -1,10 +1,8 @@
-from typing import Optional
-
-from fastapi import FastAPI, Path, WebSocket
+from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketDisconnect
 
 from codejam.server.connection_manager import ConnectionManager
-from codejam.server.game import Game
+from codejam.server.game_controller import GameController
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import DrawOperations, TopicEnum
 from codejam.server.user import User
@@ -14,30 +12,35 @@ app = FastAPI(title="WebSocket Example")
 manager = ConnectionManager()
 
 
-@app.websocket("/ws/{username}/{game_id}")
-async def websocket_endpoint(
-    websocket: WebSocket, username: str, game_id: Optional[str] = Path(None)
-):
+@app.websocket("/ws/{username}")
+async def websocket_endpoint(websocket: WebSocket, username: str):
     """Websocket Endpoint"""
     print("Accepting client connection...")
     user = User(username=username, websocket=websocket)
-    if game_id not in manager.active_games:
-        manager.active_games[game_id] = Game(creator=user, secret=game_id)
-    await manager.join_game(game_id=game_id, new_member=user)
+    game_id = None
+    await manager.connect(user=user)
     try:
         while True:
             data = await websocket.receive_json()
             print("received: " + str(data))
-            parsed_data = Message(**data)
+            message = Message(**data)
             # TODO: Extract handlers out of endpoint
             if (
-                parsed_data
-                and parsed_data.topic.type == TopicEnum.DRAW.value
-                and parsed_data.topic.operation == DrawOperations.LINE.value
+                message
+                and message.topic.type == TopicEnum.DRAW.value
+                and message.topic.operation == DrawOperations.LINE.value
             ):
+                if not game_id:
+                    raise ValueError(
+                        "You have to join or create a game " "before you can draw"
+                    )
                 await manager.broadcast(
                     game_id=game_id,
-                    message=parsed_data,
+                    message=message,
                 )
+            elif message and message.topic.type == TopicEnum.GAME.value:
+                controller = GameController(manager=manager)
+                game_id = await controller.dispatch(message=message)
     except WebSocketDisconnect:
         manager.leave(game_id=game_id, member=user)
+        manager.disconnect(user=user)

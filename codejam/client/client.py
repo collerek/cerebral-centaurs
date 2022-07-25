@@ -81,7 +81,7 @@ root_widget = Builder.load_file(f"{full_path}")
 
 async def run_websocket(widget: WhiteBoard) -> None:
     """Runs the websocket client and send messages"""
-    url = "ws://127.0.0.1:8000/ws/{0}/{1}".format(client_id, game_id)
+    url = "ws://127.0.0.1:8000/ws/{0}".format(client_id)
     try:
         print(url)
         async with websockets.connect(url) as websocket:
