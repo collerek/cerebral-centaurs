@@ -1,17 +1,24 @@
 import asyncio
 import json
 import pathlib
-from random import randint, random
+import string
+from random import choices, random
 
 import websockets
 from kivy.app import async_runTouchApp
 from kivy.graphics import Color, Line
+from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
-client_id = randint(1000000, 10000000)
+from codejam.server.interfaces.message import Message
+from codejam.server.interfaces.picture_message import LineData, PictureMessage
+from codejam.server.interfaces.topics import DrawOperations, Topic, TopicEnum
+
+client_id = "".join(choices(string.ascii_letters + string.digits, k=8))
+game_id = "randomGame"
 
 root_path = pathlib.Path(__file__).parent.resolve()
 full_path = root_path.joinpath("whiteboards.kv")
@@ -22,22 +29,29 @@ class TestCanvas(Widget):
 
     colour = ListProperty([random(), 1, 1])
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
         if self.collide_point(*touch.pos):
             with self.canvas:
                 Color(*self.colour, mode="hsv")
                 touch.ud["line"] = Line(points=(touch.x, touch.y), width=2)
 
-    def on_touch_move(self, touch):
+    def on_touch_move(self, touch: MotionEvent) -> None:
         """Called when a touch move event occurs"""
         if self.collide_point(*touch.pos):
             if touch.ud.get("line"):
                 with self.canvas:
                     touch.ud["line"].points += (touch.x, touch.y)
-                self.parent.message = json.dumps(
-                    {"line": touch.ud["line"].points[-4:], "colour": self.colour}
-                )
+                self.parent.message = Message(
+                    topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
+                    username=client_id,
+                    game_id=game_id,
+                    value=PictureMessage(
+                        data=LineData(
+                            line=touch.ud["line"].points[-4:], colour=[*self.colour]
+                        )
+                    ),
+                ).json(models_as_dict=True)
 
 
 class WhiteBoard(BoxLayout):
@@ -48,36 +62,37 @@ class WhiteBoard(BoxLayout):
     message = StringProperty("")
     received = StringProperty("")
 
-    def on_received(self, instance, value: str):
+    def on_received(self, instance, value: str) -> None:
         """Called when received message"""
         self.btn_text = value
         self.update_line(value)
 
-    def update_line(self, message: str):
+    def update_line(self, message: str) -> None:
         """Update lines from other clients"""
-        parsed = json.loads(message)
-        if parsed["client_id"] != client_id:
+        parsed = Message(**json.loads(message))
+        if parsed.username != client_id:
             with self.canvas:
-                Color(hsv=parsed["data"]["colour"])
-                Line(points=parsed["data"]["line"], width=2)
+                Color(hsv=parsed.value.data.colour)
+                Line(points=parsed.value.data.line, width=2)
 
 
-root = Builder.load_file(f"{full_path}")
+root_widget = Builder.load_file(f"{full_path}")
 
 
-async def run_websocket(root):
+async def run_websocket(widget: WhiteBoard) -> None:
     """Runs the websocket client and send messages"""
-    url = "ws://127.0.0.1:8000/ws/{0}"
+    url = "ws://127.0.0.1:8000/ws/{0}/{1}".format(client_id, game_id)
     try:
-        async with websockets.connect(url.format(client_id)) as websocket:
+        print(url)
+        async with websockets.connect(url) as websocket:
             try:
                 while True:
-                    if m := root.message:
-                        root.message = ""
+                    if m := widget.message:
+                        widget.message = ""
                         print("sending " + m)
                         await websocket.send(m)
                     try:
-                        root.received = await asyncio.wait_for(
+                        widget.received = await asyncio.wait_for(
                             websocket.recv(), timeout=1 / 60
                         )
                     except asyncio.exceptions.TimeoutError:
@@ -93,17 +108,17 @@ async def run_websocket(root):
 
 if __name__ == "__main__":  # pragma: no cover
 
-    async def run_app_happily(root, web_socket):
+    async def run_app_happily(widget: WhiteBoard, web_socket: asyncio.Future):
         """Run kivy on the asyncio loop"""
-        await async_runTouchApp(root, async_lib="asyncio")
+        await async_runTouchApp(widget, async_lib="asyncio")
         print("App done")
         web_socket.cancel()
 
     def main():
         """Run the methods asynchronously"""
-        web_socket = asyncio.ensure_future(run_websocket(root))
+        web_socket = asyncio.ensure_future(run_websocket(root_widget))
         return asyncio.gather(
-            run_app_happily(root, web_socket),
+            run_app_happily(root_widget, web_socket),
             web_socket,
         )
 
