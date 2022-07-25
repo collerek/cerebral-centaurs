@@ -70,14 +70,14 @@ class WhiteBoard(BoxLayout):
 root = Builder.load_file(f"{full_path}")
 
 
-async def run_websocket(root):
+async def run_websocket(app_root):
     """Runs the websocket client and send messages"""
     url = "ws://127.0.0.1:8000/ws/{0}"
     try:
         async with websockets.connect(url.format(client_id)) as websocket:
             try:
                 while True:
-                    if m := root.message:
+                    if m := app_root.message:
                         root.message = ""
                         print("sending " + m)
                         await websocket.send(m)
@@ -96,9 +96,9 @@ async def run_websocket(root):
 
 if __name__ == "__main__":  # pragma: no cover
 
-    async def run_app_happily(root, web_socket):
+    async def run_app_happily(app_root, web_socket):
         """Run kivy on the asyncio loop"""
-        await async_runTouchApp(root, async_lib="asyncio")
+        await async_runTouchApp(app_root, async_lib="asyncio")
         print("App done")
         web_socket.cancel()
 
