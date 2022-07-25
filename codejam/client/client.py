@@ -9,7 +9,7 @@ from kivy.app import async_runTouchApp
 from kivy.graphics import Color, Line
 from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
-from kivy.properties import ListProperty, ObjectProperty, StringProperty
+from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
@@ -28,17 +28,18 @@ class TestCanvas(Widget):
     """TestCanvas Widget"""
 
     colour = ListProperty([random(), 1, 1])
+    line_width = BoundedNumericProperty(2, min=1, max=50, errorvalue=1)
 
     def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
-        if self.collide_point(*touch.pos):
+        if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
             with self.canvas:
                 Color(*self.colour, mode="hsv")
-                touch.ud["line"] = Line(points=(touch.x, touch.y), width=2)
+                touch.ud["line"] = Line(points=(touch.x, touch.y), width=self.line_width)
 
     def on_touch_move(self, touch: MotionEvent) -> None:
         """Called when a touch move event occurs"""
-        if self.collide_point(*touch.pos):
+        if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
             if touch.ud.get("line"):
                 with self.canvas:
                     touch.ud["line"].points += (touch.x, touch.y)
@@ -62,7 +63,7 @@ class WhiteBoard(BoxLayout):
     message = StringProperty("")
     received = StringProperty("")
 
-    def on_received(self, instance, value: str) -> None:
+    def on_received(self, instance: Widget, value: str) -> None:
         """Called when received message"""
         self.btn_text = value
         self.update_line(value)
@@ -73,7 +74,7 @@ class WhiteBoard(BoxLayout):
         if parsed.username != client_id:
             with self.canvas:
                 Color(hsv=parsed.value.data.colour)
-                Line(points=parsed.value.data.line, width=2)
+                Line(points=parsed.value.data.line, width=parsed.value.data.width)
 
 
 root_widget = Builder.load_file(f"{full_path}")
