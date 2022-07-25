@@ -5,6 +5,7 @@ import pytest
 from kivy.base import EventLoop
 from kivy.graphics import Line
 from kivy.tests.common import GraphicUnitTest, UnitTestTouch
+from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import root
 
@@ -27,18 +28,21 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         self.root = root
         self.render(self.root)
-        canvas = self.root.ids.canvas
-        assert self.root.ids.label.text == "WebSocket Connected"
+        self.root.transition = NoTransition()
+        self.root.ws = True
+        self.root.current = 'whiteboard'
+        wb_screen = self.root.current_screen
+        self.advance_frames(2)
+        canvas = wb_screen.ids.canvas
+        assert wb_screen.ids.label.text == "WebSocket Connected"
         canvas.pos = (0, 0)
         touch = UnitTestTouch(x=200, y=200)
         touch.touch_down()
         touch.touch_move(x=100, y=100)
         touch.touch_up()
-
         colour = canvas.colour
         expected_line = [200.0, 200.0, 100.0, 100.0]
-        print(1234, self.root.message)
-        assert json.loads(self.root.message) == {
+        assert json.loads(wb_screen.wb.message) == {
             "line": expected_line,
             "colour": colour,
             "width": 2,
@@ -54,9 +58,10 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         self.root = root
         self.render(self.root)
+        wb_screen = self.root.get_screen('whiteboard')
 
-        self.root.received = json.dumps(self.test_line)
-        assert json.loads(self.root.btn_text) == self.test_line
+        wb_screen.wb.received = json.dumps(self.test_line)
+        assert json.loads(wb_screen.wb.btn_text) == self.test_line
 
         for child in self.root.canvas.children:
             if isinstance(child, Line):
