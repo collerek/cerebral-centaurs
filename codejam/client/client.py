@@ -90,7 +90,7 @@ async def run_websocket(root):
                 print("Loop canceled", e)
             finally:
                 print("Loop finished")
-    except ConnectionRefusedError as e:
+    except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
         print("Connection refused", e)
 
 
