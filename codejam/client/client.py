@@ -111,7 +111,7 @@ async def run_websocket(widget: WhiteBoard) -> None:
 class WhiteBoardScreen(Screen):
     """WhiteBoardScreen"""
 
-    def on_pre_enter(self):
+    def on_pre_enter(self) -> None:
         """Called when the screen is about to be shown"""
         if not self.manager.ws:
             self.manager.ws = asyncio.create_task(run_websocket(self))
