@@ -8,15 +8,11 @@ from codejam.client.client import client_id, run_websocket
 @pytest.fixture()
 def mocked_websockets(mocker):
     web_socket_mock = WebsocketMock()
-    mocker.patch(
-        "codejam.client.client.websockets",
-        web_socket_mock
-    )
+    mocker.patch("codejam.client.client.websockets", web_socket_mock)
     return web_socket_mock
 
 
 class WebsocketMock:
-
     def __init__(self):
         self.sleep = False
         self.refuse_connection = False
