@@ -8,10 +8,7 @@ from codejam.server import app
 
 @pytest.fixture
 def test_data() -> Dict:
-    return {
-        "line": [0, 1, 1, 1],
-        "colour": [0, 0, 0, 1]
-    }
+    return {"line": [0, 1, 1, 1], "colour": [0, 0, 0, 1]}
 
 
 @pytest.fixture
