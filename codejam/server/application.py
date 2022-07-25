@@ -1,6 +1,4 @@
 from fastapi import FastAPI, WebSocket
-
-# Create application
 from starlette.websockets import WebSocketDisconnect
 
 from codejam.server.connection_manager import ConnectionManager
