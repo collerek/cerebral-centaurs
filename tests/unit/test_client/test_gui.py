@@ -7,7 +7,7 @@ from kivy.graphics import Line
 from kivy.tests.common import GraphicUnitTest, UnitTestTouch
 from kivy.uix.screenmanager import NoTransition
 
-from codejam.client.client import root
+from codejam.client.client import root_widget
 
 
 @pytest.fixture(scope="class")
@@ -26,7 +26,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
-        self.root = root
+        self.root = root_widget
         self.render(self.root)
         self.root.transition = NoTransition()
         self.root.ws = True
@@ -56,7 +56,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
-        self.root = root
+        self.root = root_widget
         self.render(self.root)
         wb_screen = self.root.get_screen('whiteboard')
 
