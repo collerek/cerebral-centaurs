@@ -104,7 +104,7 @@ WhiteBoard:
                     Rectangle:
                         size: self.size
                         pos: self.pos
-                on_value: canvas.colour[0] = self.value
+                on_value: canvas.colour = self.value, 1, 1
                 on_touch_down:
                     self.value = args[1].x/self.right if self.collide_point(*args[1].pos) else self.value # *can bug*
             BoxLayout:
