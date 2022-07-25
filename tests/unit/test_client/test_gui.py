@@ -1,28 +1,21 @@
 import json
+from typing import Dict
 
 import pytest
 from kivy.base import EventLoop
 from kivy.graphics import Line
 from kivy.tests.common import GraphicUnitTest, UnitTestTouch
 
-from codejam.client.client import client_id, game_id, root_widget
-from codejam.server.interfaces.message import Message
-from codejam.server.interfaces.picture_message import LineData, PictureMessage
-from codejam.server.interfaces.topics import DrawOperations, Topic, TopicEnum
+from codejam.client.client import root
 
 
 @pytest.fixture(scope="class")
-def test_data() -> Message:
-    return Message(
-        topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
-        username=client_id,
-        game_id=game_id,
-        value=PictureMessage(data=LineData(line=[0, 1, 1, 1], colour=[0, 0, 0, 1])),
-    )
+def test_data() -> Dict:
+    return {"client_id": 1, "data": {"line": [0, 1, 1, 1], "colour": [0, 0, 0, 1], "width": 2}}
 
 
 @pytest.fixture(scope="class")
-def test_line(request, test_data: PictureMessage) -> None:
+def test_line(request, test_data):
     request.cls.test_line = test_data
 
 
@@ -32,11 +25,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
-        self.root_widget = root_widget
-        self.render(self.root_widget)
-        canvas = self.root_widget.ids.canvas
-        assert self.root_widget.ids.label.text == "WebSocket Connected"
-
+        self.root = root
+        self.render(self.root)
+        canvas = self.root.ids.canvas
+        assert self.root.ids.label.text == "WebSocket Connected"
+        canvas.pos = (0, 0)
         touch = UnitTestTouch(x=200, y=200)
         touch.touch_down()
         touch.touch_move(x=100, y=100)
@@ -44,16 +37,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         colour = canvas.colour
         expected_line = [200.0, 200.0, 100.0, 100.0]
-        assert json.loads(self.root_widget.message) == {
-            "topic": self.test_line.topic.dict(),
-            "username": self.test_line.username,
-            "game_id": self.test_line.game_id,
-            "value": {
-                "data": {
-                    "line": expected_line,
-                    "colour": [x * 1.0 for x in colour],
-                }
-            },
+        print(1234, self.root.message)
+        assert json.loads(self.root.message) == {
+            "line": expected_line,
+            "colour": colour,
+            "width": 2,
         }
         self.advance_frames(2)
         assert "line" in touch.ud
@@ -64,18 +52,15 @@ class BasicDrawingTestCase(GraphicUnitTest):
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
-        self.root_widget = root_widget
-        self.render(self.root_widget)
+        self.root = root
+        self.render(self.root)
 
-        incoming_line = self.test_line.copy(deep=True)
-        incoming_line.username = "New user"
-        self.root_widget.received = incoming_line.json()
-        assert json.loads(self.root_widget.btn_text) == incoming_line.dict()
+        self.root.received = json.dumps(self.test_line)
+        assert json.loads(self.root.btn_text) == self.test_line
 
-        line = next(
-            (x for x in self.root_widget.canvas.children if isinstance(x, Line)), None
-        )
-        assert line.points == incoming_line.value.data.line
+        for child in self.root.canvas.children:
+            if isinstance(child, Line):
+                assert child.points == self.test_line["data"]["line"]
 
-        self.render(self.root_widget)
+        self.render(self.root)
         self.assertLess(len(self._win.children), 2)
