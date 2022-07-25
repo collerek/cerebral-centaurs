@@ -32,9 +32,7 @@ class GameController(BaseController):
         game_id = self.manager.register_game(creator=user)
         self.manager.join_game(game_id=game_id, new_member=user)
         message = Message(
-            topic=Topic(
-                type=TopicEnum.GAME.value, operation=GameOperations.CREATE.value
-            ),
+            topic=Topic(type=TopicEnum.GAME.value, operation=GameOperations.CREATE.value),
             username=user.username,
             game_id=game_id,
             value=GameMessage(success=True, game_id=game_id),

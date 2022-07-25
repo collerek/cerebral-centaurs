@@ -26,9 +26,7 @@ class DrawController(BaseController):
     async def draw_line(self, message: Message):
         """Handles drawin the line."""
         if not message.game_id:
-            raise GameNotStarted(
-                "You have to join or create a game " "before you can draw"
-            )
+            raise GameNotStarted("You have to join or create a game " "before you can draw")
         await self.manager.broadcast(
             game_id=message.game_id,
             message=message,

@@ -26,9 +26,7 @@ class ConnectionManager:
 
     def get_user(self, username: str) -> User:
         """Get user from active connections by username."""
-        user = next(
-            (x for x in self.active_connections if x.username == username), None
-        )
+        user = next((x for x in self.active_connections if x.username == username), None)
         if not user:
             raise ValueError(f"User with username: {username} does not exist!")
         return user
