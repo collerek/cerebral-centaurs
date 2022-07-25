@@ -8,7 +8,10 @@ from codejam.client.client import client_id, run_websocket
 @pytest.fixture()
 def mocked_websockets(mocker):
     web_socket_mock = WebsocketMock()
-    mocker.patch("codejam.client.client.websockets", web_socket_mock)
+    mocker.patch(
+        "codejam.client.client.websockets",
+        web_socket_mock
+    )
     return web_socket_mock
 
 
@@ -17,6 +20,7 @@ class Empty:
 
 
 class WebsocketMock:
+
     def __init__(self):
         self.sleep = False
         self.refuse_connection = False
@@ -52,10 +56,9 @@ class WebsocketMock:
 @pytest.mark.asyncio
 async def test_websockets(mocker, mocked_websockets):
     message = "test message"
-    root_mock = mocker.Mock(message=message)
+    root_mock = mocker.Mock()
     root_mock.wb.message = message
     await run_websocket(widget=root_mock)
-
     assert root_mock.wb.received == message
     assert root_mock.wb.message == ""
     assert mocked_websockets.url == f"ws://127.0.0.1:8000/ws/{client_id}"
@@ -65,7 +68,7 @@ async def test_websockets(mocker, mocked_websockets):
 async def test_websockets_timeout(mocker, mocked_websockets):
     mocked_websockets.sleep = True
     message = "test message"
-    root_mock = mocker.Mock(message=message)
+    root_mock = mocker.Mock()
     root_mock.wb.message = message
     await run_websocket(widget=root_mock)
     assert root_mock.wb.received == message

@@ -45,7 +45,7 @@ class TestCanvas(Widget):
             if touch.ud.get("line"):
                 with self.canvas:
                     touch.ud["line"].points += (touch.x, touch.y)
-                self.parent.message = Message(
+                root_widget.current_screen.wb.message = Message(
                     topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
                     username=client_id,
                     game_id=game_id,

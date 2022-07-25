@@ -30,7 +30,7 @@ def test_data(test_client: str) -> Message:
         topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
         username=test_client,
         game_id=None,
-        value=PictureMessage(data=LineData(line=[0, 1, 1, 1], colour=[0, 0, 0, 1])),
+        value=PictureMessage(data=LineData(line=[0, 1, 1, 1], colour=[0, 0, 0, 1], width=2)),
     )
 
 
