@@ -11,7 +11,7 @@ from codejam.client.client import root
 
 @pytest.fixture(scope="class")
 def test_data() -> Dict:
-    return {"client_id": 1, "data": {"line": [0, 1, 1, 1], "colour": [0, 0, 0, 1]}}
+    return {"client_id": 1, "data": {"line": [0, 1, 1, 1], "colour": [0, 0, 0, 1], "width": 2}}
 
 
 @pytest.fixture(scope="class")
@@ -29,7 +29,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         self.render(self.root)
         canvas = self.root.ids.canvas
         assert self.root.ids.label.text == "WebSocket Connected"
-
+        canvas.pos = (0, 0)
         touch = UnitTestTouch(x=200, y=200)
         touch.touch_down()
         touch.touch_move(x=100, y=100)
@@ -37,9 +37,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         colour = canvas.colour
         expected_line = [200.0, 200.0, 100.0, 100.0]
+        print(1234, self.root.message)
         assert json.loads(self.root.message) == {
             "line": expected_line,
             "colour": colour,
+            "width": 2,
         }
         self.advance_frames(2)
         assert "line" in touch.ud

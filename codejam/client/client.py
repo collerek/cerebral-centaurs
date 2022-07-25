@@ -36,7 +36,7 @@ class TestCanvas(Widget):
             if touch.ud.get("line"):
                 with self.canvas:
                     touch.ud["line"].points += (touch.x, touch.y)
-                self.parent.message = json.dumps(
+                root.message = json.dumps(
                     {
                         "line": touch.ud["line"].points[-4:],
                         "colour": self.colour,
