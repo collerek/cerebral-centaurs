@@ -4,7 +4,7 @@ from typing import List
 
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import TopicEnum
-from codejam.server.user import User
+from codejam.server.models.user import User
 
 
 class Game:
