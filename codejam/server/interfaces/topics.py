@@ -59,8 +59,6 @@ class Topic(BaseModel):
             TopicEnum.ERROR.value: ErrorOperations,
         }
         expected_operations = allowed_operations.get(values.get("type"))
-        if not expected_operations or v not in set(
-            x.value for x in expected_operations
-        ):
+        if not expected_operations or v not in set(x.value for x in expected_operations):
             raise ValueError(f"Not allowed operations for {values.get('type')}")
         return v

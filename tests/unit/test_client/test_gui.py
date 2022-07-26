@@ -4,6 +4,7 @@ import pytest
 from kivy.base import EventLoop
 from kivy.graphics import Line
 from kivy.tests.common import GraphicUnitTest, UnitTestTouch
+from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import client_id, game_id, root_widget
 from codejam.server.interfaces.message import Message
@@ -17,7 +18,7 @@ def test_data() -> Message:
         topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
         username=client_id,
         game_id=game_id,
-        value=PictureMessage(data=LineData(line=[0, 1, 1, 1], colour=[0, 0, 0, 1])),
+        value=PictureMessage(data=LineData(line=[0, 1, 1, 1], colour=[0, 0, 0, 1], width=2))
     )
 
 
@@ -28,30 +29,37 @@ def test_line(request, test_data: PictureMessage) -> None:
 
 @pytest.mark.usefixtures("test_line")
 class BasicDrawingTestCase(GraphicUnitTest):
+
     def test_drawing_line(self, *args):
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
-        self.root_widget = root_widget
-        self.render(self.root_widget)
-        canvas = self.root_widget.ids.canvas
-        assert self.root_widget.ids.label.text == "WebSocket Connected"
+        self.root = root_widget
+        self.render(self.root)
+        self.root.transition = NoTransition()
+        self.root.ws = True
+        self.root.current = 'whiteboard'
+        wb_screen = self.root.current_screen
+        self.advance_frames(1)
 
+        canvas = wb_screen.ids.canvas
+        assert wb_screen.ids.label.text == "WebSocket Connected"
+        canvas.pos = (0, 0)
         touch = UnitTestTouch(x=200, y=200)
         touch.touch_down()
         touch.touch_move(x=100, y=100)
         touch.touch_up()
-
         colour = canvas.colour
         expected_line = [200.0, 200.0, 100.0, 100.0]
-        assert json.loads(self.root_widget.message) == {
+        assert json.loads(wb_screen.wb.message) == {
             "topic": self.test_line.topic.dict(),
             "username": self.test_line.username,
             "game_id": self.test_line.game_id,
             "value": {
                 "data": {
                     "line": expected_line,
-                    "colour": [x * 1.0 for x in colour],
+                    "colour": colour,
+                    "width": 2,
                 }
             },
         }
@@ -66,14 +74,15 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         self.root_widget = root_widget
         self.render(self.root_widget)
+        wb_screen = self.root_widget.get_screen('whiteboard')
 
         incoming_line = self.test_line.copy(deep=True)
         incoming_line.username = "New user"
-        self.root_widget.received = incoming_line.json()
-        assert json.loads(self.root_widget.btn_text) == incoming_line.dict()
+        wb_screen.wb.received = incoming_line.json()
+        assert json.loads(wb_screen.wb.btn_text) == incoming_line.dict()
 
         line = next(
-            (x for x in self.root_widget.canvas.children if isinstance(x, Line)), None
+            (x for x in wb_screen.wb.canvas.children if isinstance(x, Line)), None
         )
         assert line.points == incoming_line.value.data.line
 
