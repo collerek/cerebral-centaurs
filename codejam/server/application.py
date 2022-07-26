@@ -34,22 +34,23 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
     }
     try:
         while True:
-            data = await websocket.receive_json()
-            print("received: " + str(data))
-            message = Message(**data)
-            game_id = message.game_id
-            controller = controllers[cast(str, message.topic.type)]
-            await controller(manager=manager).dispatch(message=message)  # type: ignore
+            try:
+                data = await websocket.receive_json()
+                print("received: " + str(data))
+                message = Message(**data)
+                game_id = message.game_id
+                controller = controllers[cast(str, message.topic.type)]
+                await controller(manager=manager).dispatch(message=message)  # type: ignore
+            except (pydantic.ValidationError, WhiteBoardException) as e:
+                message = Message(
+                    topic=Topic(type=TopicEnum.ERROR, operation=ErrorOperations.BROADCAST),
+                    username=user.username,
+                    game_id=game_id,
+                    value=ErrorMessage(exception=e.__class__.__name__, value=str(e)),
+                )
+                await ErrorController(manager=manager).dispatch(message=message)
     except WebSocketDisconnect:
         pass
-    except (pydantic.ValidationError, WhiteBoardException) as e:
-        message = Message(
-            topic=Topic(type=TopicEnum.ERROR, operation=ErrorOperations.BROADCAST),
-            username=user.username,
-            game_id=game_id,
-            value=ErrorMessage(exception=e.__class__.__name__, value=str(e)),
-        )
-        await ErrorController(manager=manager).dispatch(message=message)
     finally:
         if game_id and game_id in manager.active_games:
             manager.leave(game_id=game_id, member=user)

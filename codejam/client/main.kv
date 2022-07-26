@@ -1,3 +1,27 @@
+<ErrorPopup@Popup>
+    id: error_widget
+    auto_dismiss: False
+    size_hint: 0.6, 0.2
+    pos_hint: {"x": 0.2 ,"top": 0.9}
+    title: "Error encountered!"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            id: title
+            text: "Error Title"
+            halign: "left"
+        Label:
+            id: error_code
+            text: "Error Code"
+            halign: "left"
+        Label:
+            id: message
+            text: "Error Message"
+            halign: "left"
+        Button:
+            text: "Close"
+            on_release: root.dismiss()
+
 ScreenManager:
     ws: False
     Screen:

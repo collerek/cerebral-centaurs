@@ -3,6 +3,7 @@ from typing import Any, Callable, Coroutine, Dict
 
 from codejam.server.connection_manager import ConnectionManager
 from codejam.server.controllers.base_controller import BaseController
+from codejam.server.exceptions import GameNotExist
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import ErrorOperations
 
@@ -28,7 +29,13 @@ class ErrorController(BaseController):
             user = self.manager.get_user(message.username)
             await user.send_message(message=message)
         else:
-            await self.manager.broadcast(
-                game_id=message.game_id,
-                message=message,
-            )
+            try:
+                await self.manager.broadcast(
+                    game_id=message.game_id,
+                    message=message,
+                )
+            except GameNotExist:
+                message.value.exception = GameNotExist.__name__
+                message.value.value = f"Game with id: {message.game_id} does not exist!"
+                user = self.manager.get_user(message.username)
+                await user.send_message(message=message)

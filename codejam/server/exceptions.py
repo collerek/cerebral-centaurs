@@ -8,3 +8,11 @@ class GameNotStarted(WhiteBoardException):
 
 class GameEnded(WhiteBoardException):
     """Raised for other users when creator ends the game."""
+
+
+class GameNotExist(WhiteBoardException):
+    """Raised when game with given game_id does not exist."""
+
+
+class UserNotExist(WhiteBoardException):
+    """Raised when user with given username does not exist."""
