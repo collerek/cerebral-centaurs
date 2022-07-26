@@ -3,6 +3,7 @@ import json
 import pathlib
 import string
 from random import choices, random
+from typing import Callable, Dict, cast
 
 import websockets
 from kivy.app import async_runTouchApp
@@ -11,12 +12,13 @@ from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage
-from codejam.server.interfaces.topics import DrawOperations, Topic, TopicEnum
+from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, Topic, TopicEnum
 
 client_id = "".join(choices(string.ascii_letters + string.digits, k=8))
 game_id = "randomGame"
@@ -69,16 +71,43 @@ class WhiteBoard(BoxLayout):
 
     def on_received(self, instance: Widget, value: str) -> None:
         """Called when received message"""
-        self.btn_text = value
-        self.update_line(value)
+        # TODO: rafactor
+        draw_callbacks: Dict[str, Callable[[Message], None]] = {
+            DrawOperations.LINE.value: self.update_line
+        }
+        game_callbacks: Dict[str, Callable[[Message], None]] = {}
+        chat_callbacks: Dict[str, Callable[[Message], None]] = {}
+        error_callbacks: Dict[str, Callable[[Message], None]] = {
+            ErrorOperations.BROADCAST.value: self.display_error
+        }
 
-    def update_line(self, message: str) -> None:
+        callbacks: Dict[str, Dict] = {
+            TopicEnum.DRAW.value: draw_callbacks,
+            TopicEnum.GAME.value: game_callbacks,
+            TopicEnum.CHAT.value: chat_callbacks,
+            TopicEnum.ERROR.value: error_callbacks,
+        }
+        self.btn_text = value
+        print("fired event")
+        parsed = Message(**json.loads(value))
+        callback = callbacks[cast(str, parsed.topic.type)][parsed.topic.operation]
+        callback(parsed)
+
+    def update_line(self, message: Message) -> None:
         """Update lines from other clients"""
-        parsed = Message(**json.loads(message))
-        if parsed.username != client_id:
+        if message.username != client_id:
             with self.canvas:
-                Color(hsv=parsed.value.data.colour)
-                Line(points=parsed.value.data.line, width=parsed.value.data.width)
+                Color(hsv=message.value.data.colour)
+                Line(points=message.value.data.line, width=message.value.data.width)
+
+    def display_error(self, message: Message) -> None:
+        """Update lines from other clients"""
+        popup = ErrorPopup(
+            title=message.value.exception,
+            message=message.value.value,
+            error_code=message.value.error_id,
+        )
+        popup.open()
 
 
 class WhiteBoardScreen(Screen):
@@ -114,6 +143,14 @@ class WhiteBoardScreen(Screen):
                     print("Loop finished")
         except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
             print("Connection refused", e)
+
+
+class ErrorPopup(ModalView):
+    """ErrorPopup"""
+
+    title = StringProperty("")
+    message = StringProperty("")
+    error_code = StringProperty("")
 
 
 Builder.load_file(f"{full_path}")

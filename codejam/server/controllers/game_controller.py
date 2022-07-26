@@ -55,4 +55,4 @@ class GameController(BaseController):
 
     async def end_game(self, message: Message):
         """End existing game by creator."""
-        raise GameEnded()
+        raise GameEnded("Game was ended by the creator!")

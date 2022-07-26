@@ -30,7 +30,9 @@ def test_data(test_client: str) -> Message:
         topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
         username=test_client,
         game_id=None,
-        value=PictureMessage(data=LineData(line=[0, 1, 1, 1], colour=[0, 0, 0, 1], width=2)),
+        value=PictureMessage(
+            data=LineData(line=[0, 1, 1, 1], colour=[0, 0, 0, 1], width=2)
+        ),
     )
 
 
@@ -75,7 +77,7 @@ def chat_message(test_client: str) -> Message:
 
 
 def test_basic_line_draw(
-        test_client: str, test_data: Message, game_creation_message: Message
+    test_client: str, test_data: Message, game_creation_message: Message
 ):
     client = TestClient(app)
     with client.websocket_connect(f"/ws/{test_client}") as websocket:
@@ -91,12 +93,11 @@ def test_basic_line_draw(
 
 
 def test_joining_player_receive_history(
-        test_client: str,
-        second_test_client: str,
-        test_data: Message,
-        game_creation_message: Message,
-        game_join_message: Message,
-
+    test_client: str,
+    second_test_client: str,
+    test_data: Message,
+    game_creation_message: Message,
+    game_join_message: Message,
 ):
     client = TestClient(app)
     with client.websocket_connect(f"/ws/{test_client}") as websocket:
@@ -121,12 +122,12 @@ def test_joining_player_receive_history(
 
 
 def test_ending_game(
-        test_client: str,
-        second_test_client: str,
-        test_data: Message,
-        game_creation_message: Message,
-        game_join_message: Message,
-        game_end_message: Message,
+    test_client: str,
+    second_test_client: str,
+    test_data: Message,
+    game_creation_message: Message,
+    game_join_message: Message,
+    game_end_message: Message,
 ):
     client = TestClient(app)
     with client.websocket_connect(f"/ws/{test_client}") as websocket:
@@ -142,10 +143,41 @@ def test_ending_game(
             websocket2.receive_json()
             websocket.send_json(game_end_message.dict())
             data = websocket2.receive_json()
-            assert data == {'game_id': game_id,
-                            'topic': {'operation': 'BROADCAST', 'type': 'ERROR'},
-                            'username': 'client',
-                            'value': {'exception': 'GameEnded', 'value': ''}}
+            assert data == {
+                "game_id": game_id,
+                "topic": {"operation": "BROADCAST", "type": "ERROR"},
+                "username": "client",
+                "value": {
+                    "error_id": data["value"]["error_id"],
+                    "exception": "GameEnded",
+                    "value": "Game was ended by the creator!",
+                },
+            }
+
+
+def test_ending_not_existing(
+    test_client: str,
+    second_test_client: str,
+    test_data: Message,
+    game_creation_message: Message,
+    game_join_message: Message,
+    game_end_message: Message,
+):
+    client = TestClient(app)
+    with client.websocket_connect(f"/ws/{test_client}") as websocket:
+        game_end_message.game_id = "dummy_game_id"
+        websocket.send_json(game_end_message.dict())
+        data = websocket.receive_json()
+        assert data == {
+            "game_id": "dummy_game_id",
+            "topic": {"operation": "BROADCAST", "type": "ERROR"},
+            "username": "client",
+            "value": {
+                "error_id": data["value"]["error_id"],
+                "exception": "GameNotExist",
+                "value": "Game with id: dummy_game_id does not exist!",
+            },
+        }
 
 
 def test_wrong_operation_per_topic(test_client: str, test_data: Message):
@@ -159,10 +191,11 @@ def test_wrong_operation_per_topic(test_client: str, test_data: Message):
             "topic": {"operation": "BROADCAST", "type": "ERROR"},
             "username": "client",
             "value": {
+                "error_id": data["value"]["error_id"],
                 "exception": "ValidationError",
                 "value": "1 validation error for Message\n"
-                         "topic -> operation\n"
-                         "  Not allowed operations for CHAT (type=value_error)",
+                "topic -> operation\n"
+                "  Not allowed operations for CHAT (type=value_error)",
             },
         }
 
@@ -177,6 +210,7 @@ def test_drawing_before_joining_raises_exception(test_client: str, test_data: Me
             "topic": {"operation": "BROADCAST", "type": "ERROR"},
             "username": "client",
             "value": {
+                "error_id": data["value"]["error_id"],
                 "exception": "GameNotStarted",
                 "value": "You have to join or create a game before you can draw",
             },
@@ -184,7 +218,7 @@ def test_drawing_before_joining_raises_exception(test_client: str, test_data: Me
 
 
 def test_basic_chat_message(
-        test_client: str, game_creation_message: Message, chat_message: Message
+    test_client: str, game_creation_message: Message, chat_message: Message
 ):
     client = TestClient(app)
     with client.websocket_connect(f"/ws/{test_client}") as websocket:
