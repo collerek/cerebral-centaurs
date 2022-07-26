@@ -6,7 +6,7 @@ from random import choices, random
 
 import websockets
 from kivy.app import async_runTouchApp
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Rectangle
 from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
@@ -31,13 +31,17 @@ class TestCanvas(Widget):
 
     colour = ListProperty([random(), 1, 1])
     line_width = BoundedNumericProperty(2, min=1, max=50, errorvalue=1)
+    tool = StringProperty("line")
 
     def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
         if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
             with self.canvas:
                 Color(*self.colour, mode="hsv")
-                touch.ud["line"] = Line(points=(touch.x, touch.y), width=self.line_width)
+                if self.tool == "line":
+                    touch.ud["line"] = Line(points=(touch.x, touch.y), width=self.line_width)
+                else:
+                    touch.ud["rect"] = Rectangle(pos=(touch.x, touch.y), size=(0, 0))
 
     def on_touch_move(self, touch: MotionEvent) -> None:
         """Called when a touch move event occurs"""
@@ -57,6 +61,13 @@ class TestCanvas(Widget):
                         )
                     ),
                 ).json(models_as_dict=True)
+
+            elif touch.ud.get("rect"):
+                if not touch.ud.get("origin"):
+                    touch.ud["origin"] = (touch.x, touch.y)
+                pos = touch.ud["origin"]
+                touch.ud["rect"].pos = min(pos[0], touch.x), min(pos[1], touch.y)
+                touch.ud["rect"].size = abs(touch.x - pos[0]), abs(touch.y - pos[1])
 
 
 class WhiteBoard(BoxLayout):

@@ -134,8 +134,18 @@
             text: '+'
             on_release:
                 root.canvas.line_width += 1
+    BoxLayout:
+        Button:
+            text: 'line'
+            on_release:
+                root.canvas.tool = 'line'
+        Button:
+            text: 'rect'
+            on_release:
+                root.canvas.tool = 'rect'
     Button:
         text: 'clear'
         on_release:
             root.canvas.line_width = 10
+            root.canvas.tool = 'line'
             root.canvas.colour = root.canvas.draw_mark
