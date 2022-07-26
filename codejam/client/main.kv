@@ -1,22 +1,24 @@
-<ErrorPopup@Popup>
-    id: error_widget
+<ErrorPopup@ModalView>:
     auto_dismiss: False
     size_hint: 0.6, 0.2
     pos_hint: {"x": 0.2 ,"top": 0.9}
-    title: "Error encountered!"
+    title: "Error Title"
+    error_code: "Error Code"
+    message: "Error Message"
     BoxLayout:
+        size_hint: None, None
         orientation: "vertical"
         Label:
-            id: title
-            text: "Error Title"
+            text: "Error encountered!"
+        Widget:
+        Label:
+            text: root.title
             halign: "left"
         Label:
-            id: error_code
-            text: "Error Code"
+            text: root.error_code
             halign: "left"
         Label:
-            id: message
-            text: "Error Message"
+            text: root.message
             halign: "left"
         Button:
             text: "Close"
