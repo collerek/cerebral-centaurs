@@ -26,6 +26,7 @@ class DrawOperations(Enum):
     """Available draw operations."""
 
     LINE = "LINE"
+    RECT = "RECT"
 
 
 class ChatOperations(Enum):

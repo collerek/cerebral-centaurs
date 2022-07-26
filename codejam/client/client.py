@@ -15,7 +15,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
 from codejam.server.interfaces.message import Message
-from codejam.server.interfaces.picture_message import LineData, PictureMessage
+from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
 from codejam.server.interfaces.topics import DrawOperations, Topic, TopicEnum
 
 client_id = "".join(choices(string.ascii_letters + string.digits, k=8))
@@ -68,6 +68,18 @@ class TestCanvas(Widget):
                 pos = touch.ud["origin"]
                 touch.ud["rect"].pos = min(pos[0], touch.x), min(pos[1], touch.y)
                 touch.ud["rect"].size = abs(touch.x - pos[0]), abs(touch.y - pos[1])
+                root_widget.current_screen.wb.message = Message(
+                    topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.RECT),
+                    username=client_id,
+                    game_id=game_id,
+                    value=PictureMessage(
+                        data=RectData(
+                            pos=touch.ud["rect"].pos,
+                            colour=[*self.colour],
+                            size=touch.ud["rect"].size,
+                        )
+                    ),
+                ).json(models_as_dict=True)
 
 
 class WhiteBoard(BoxLayout):
@@ -81,15 +93,22 @@ class WhiteBoard(BoxLayout):
     def on_received(self, instance: Widget, value: str) -> None:
         """Called when received message"""
         self.btn_text = value
-        self.update_line(value)
+        parsed = Message(**json.loads(value))
+        if parsed.username == client_id:
+            return
+        if parsed.topic.type == TopicEnum.DRAW:
+            self.update_line(parsed)
 
-    def update_line(self, message: str) -> None:
+    def update_line(self, message: Message) -> None:
         """Update lines from other clients"""
-        parsed = Message(**json.loads(message))
-        if parsed.username != client_id:
+        if message.topic.operation == DrawOperations.LINE:
             with self.canvas:
-                Color(hsv=parsed.value.data.colour)
-                Line(points=parsed.value.data.line, width=parsed.value.data.width)
+                Color(hsv=message.value.data.colour)
+                Line(points=message.value.data.line, width=message.value.data.width)
+        elif message.topic.operation == DrawOperations.RECT:
+            with self.canvas:
+                Color(hsv=message.value.data.colour)
+                Rectangle(pos=message.value.data.pos, size=message.value.data.size)
 
 
 class WhiteBoardScreen(Screen):
