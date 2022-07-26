@@ -81,40 +81,39 @@ class WhiteBoard(BoxLayout):
                 Line(points=parsed.value.data.line, width=parsed.value.data.width)
 
 
-async def run_websocket(widget: WhiteBoard) -> None:
-    """Runs the websocket client and send messages"""
-    url = "ws://127.0.0.1:8000/ws/{0}".format(client_id)
-    try:
-        print(url)
-        async with websockets.connect(url) as websocket:
-            try:
-                while True:
-                    if m := widget.wb.message:
-                        widget.wb.message = ""
-                        print("sending " + m)
-                        await websocket.send(m)
-                    try:
-                        widget.wb.received = await asyncio.wait_for(
-                            websocket.recv(), timeout=1 / 60
-                        )
-                    except asyncio.exceptions.TimeoutError:
-                        continue
-                    await asyncio.sleep(1 / 60)
-            except asyncio.CancelledError as e:
-                print("Loop canceled", e)
-            finally:
-                print("Loop finished")
-    except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
-        print("Connection refused", e)
-
-
 class WhiteBoardScreen(Screen):
     """WhiteBoardScreen"""
 
     def on_pre_enter(self) -> None:
-        """Called when the screen is about to be shown"""
+        """Called when the screen is about to be shown."""
         if not self.manager.ws:
-            self.manager.ws = asyncio.create_task(run_websocket(self))
+            self.manager.ws = asyncio.create_task(self.run_websocket())
+
+    async def run_websocket(self) -> None:
+        """Runs the websocket client and send messages."""
+        url = "ws://127.0.0.1:8000/ws/{0}".format(client_id)
+        try:
+            print(url)
+            async with websockets.connect(url) as websocket:
+                try:
+                    while True:
+                        if m := self.wb.message:
+                            self.wb.message = ""
+                            print("sending " + m)
+                            await websocket.send(m)
+                        try:
+                            self.wb.received = await asyncio.wait_for(
+                                websocket.recv(), timeout=1 / 60
+                            )
+                        except asyncio.exceptions.TimeoutError:
+                            continue
+                        await asyncio.sleep(1 / 60)
+                except asyncio.CancelledError as e:
+                    print("Loop canceled", e)
+                finally:
+                    print("Loop finished")
+        except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
+            print("Connection refused", e)
 
 
 Builder.load_file(f"{full_path}")

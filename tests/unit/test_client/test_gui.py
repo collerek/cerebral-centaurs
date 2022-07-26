@@ -29,6 +29,7 @@ def test_line(request, test_data: PictureMessage) -> None:
 
 @pytest.mark.usefixtures("test_line")
 class BasicDrawingTestCase(GraphicUnitTest):
+
     def test_drawing_line(self, *args):
         EventLoop.ensure_window()
         self._win = EventLoop.window
