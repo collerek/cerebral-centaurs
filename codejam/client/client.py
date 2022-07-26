@@ -7,12 +7,12 @@ from typing import Callable, Dict, cast
 
 import websockets
 from kivy.app import async_runTouchApp
-from kivy.factory import Factory
 from kivy.graphics import Color, Line
 from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
@@ -102,10 +102,11 @@ class WhiteBoard(BoxLayout):
 
     def display_error(self, message: Message) -> None:
         """Update lines from other clients"""
-        popup = Factory.ErrorPopup()
-        popup.ids.title.text = message.value.exception
-        popup.ids.message.text = message.value.value
-        popup.ids.error_code.text = message.value.error_id
+        popup = ErrorPopup(
+            title=message.value.exception,
+            message=message.value.value,
+            error_code=message.value.error_id,
+        )
         popup.open()
 
 
@@ -142,6 +143,14 @@ class WhiteBoardScreen(Screen):
                     print("Loop finished")
         except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
             print("Connection refused", e)
+
+
+class ErrorPopup(ModalView):
+    """ErrorPopup"""
+
+    title = StringProperty("")
+    message = StringProperty("")
+    error_code = StringProperty("")
 
 
 Builder.load_file(f"{full_path}")

@@ -4,7 +4,7 @@ import pytest
 from kivy.base import EventLoop
 from kivy.graphics import Line
 from kivy.tests.common import GraphicUnitTest, UnitTestTouch
-from kivy.uix.popup import Popup
+from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import client_id, game_id, root_widget
@@ -118,10 +118,10 @@ class BasicDrawingTestCase(GraphicUnitTest):
         assert json.loads(wb_screen.wb.btn_text) == self.test_error.dict()
 
         popup = next(
-            (x for x in self._win.children if isinstance(x, Popup)), None
+            (x for x in self._win.children if isinstance(x, ModalView)), None
         )
-        assert popup.ids.title.text == self.test_error.value.exception
-        assert popup.ids.message.text == self.test_error.value.value
+        assert popup.title == self.test_error.value.exception
+        assert popup.message == self.test_error.value.value
 
         popup.dismiss()
         self.advance_frames(1)
