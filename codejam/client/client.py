@@ -40,7 +40,7 @@ class TestCanvas(Widget):
                 Color(*self.colour, mode="hsv")
                 if self.tool == "line":
                     touch.ud["line"] = Line(points=(touch.x, touch.y), width=self.line_width)
-                else:
+                elif self.tool == "rect":
                     touch.ud["rect"] = Rectangle(pos=(touch.x, touch.y), size=(0, 0))
 
     def on_touch_move(self, touch: MotionEvent) -> None:
@@ -49,37 +49,32 @@ class TestCanvas(Widget):
             if touch.ud.get("line"):
                 with self.canvas:
                     touch.ud["line"].points += (touch.x, touch.y)
-                root_widget.current_screen.wb.message = Message(
-                    topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
-                    username=client_id,
-                    game_id=game_id,
-                    value=PictureMessage(
-                        data=LineData(
-                            line=touch.ud["line"].points[-4:],
-                            colour=[*self.colour],
-                            width=self.line_width,
-                        )
-                    ),
-                ).json(models_as_dict=True)
-
+                op = DrawOperations.LINE
+                data = LineData(
+                    line=touch.ud["line"].points[-4:],
+                    colour=self.colour,
+                    width=self.line_width,
+                )
             elif touch.ud.get("rect"):
                 if not touch.ud.get("origin"):
                     touch.ud["origin"] = (touch.x, touch.y)
                 pos = touch.ud["origin"]
                 touch.ud["rect"].pos = min(pos[0], touch.x), min(pos[1], touch.y)
                 touch.ud["rect"].size = abs(touch.x - pos[0]), abs(touch.y - pos[1])
-                root_widget.current_screen.wb.message = Message(
-                    topic=Topic(type=TopicEnum.DRAW, operation=DrawOperations.RECT),
-                    username=client_id,
-                    game_id=game_id,
-                    value=PictureMessage(
-                        data=RectData(
-                            pos=touch.ud["rect"].pos,
-                            colour=[*self.colour],
-                            size=touch.ud["rect"].size,
-                        )
-                    ),
-                ).json(models_as_dict=True)
+                op = DrawOperations.RECT
+                data = RectData(
+                    pos=touch.ud["rect"].pos,
+                    colour=self.colour,
+                    size=touch.ud["rect"].size,
+                )
+            else:
+                return
+            root_widget.current_screen.wb.message = Message(
+                topic=Topic(type=TopicEnum.DRAW, operation=op),
+                username=client_id,
+                game_id=game_id,
+                value=PictureMessage(data=data),
+            ).json(models_as_dict=True)
 
 
 class WhiteBoard(BoxLayout):
@@ -101,12 +96,11 @@ class WhiteBoard(BoxLayout):
 
     def update_line(self, message: Message) -> None:
         """Update lines from other clients"""
-        if message.topic.operation == DrawOperations.LINE:
-            with self.canvas:
+        with self.canvas:
+            if message.topic.operation == DrawOperations.LINE:
                 Color(hsv=message.value.data.colour)
                 Line(points=message.value.data.line, width=message.value.data.width)
-        elif message.topic.operation == DrawOperations.RECT:
-            with self.canvas:
+            elif message.topic.operation == DrawOperations.RECT:
                 Color(hsv=message.value.data.colour)
                 Rectangle(pos=message.value.data.pos, size=message.value.data.size)
 
