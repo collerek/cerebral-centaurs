@@ -3,7 +3,9 @@ from typing import Dict
 
 import pytest
 
-from codejam.client.client import client_id, WhiteBoardScreen
+from codejam.client.client import root_widget, WhiteBoardScreen
+
+URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 
 
 @pytest.fixture()
@@ -54,9 +56,9 @@ class WebsocketMock:
 @pytest.mark.parametrize(
     "attributes, expected_message, expected_received, expected_url",
     (
-        ({}, "", "test message", f"ws://127.0.0.1:8000/ws/{client_id}"),
-        ({"sleep": True}, "", "test message", f"ws://127.0.0.1:8000/ws/{client_id}"),
-        ({"cancel": True}, "", None, f"ws://127.0.0.1:8000/ws/{client_id}"),
+        ({}, "", "test message", URL),
+        ({"sleep": True}, "", "test message", URL),
+        ({"cancel": True}, "", None, URL),
         ({"refuse_connection": True}, "test message", None, ""),
     ),
     ids=[
@@ -80,6 +82,7 @@ async def test_websockets(
     screen = WhiteBoardScreen()
     message = "test message"
     screen.wb = mocker.Mock()
+    screen.manager = mocker.Mock(username=root_widget.username)
     screen.wb.message = message
     await screen.run_websocket()
     if expected_received is not None:

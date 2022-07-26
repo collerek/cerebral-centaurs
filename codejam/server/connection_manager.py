@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from codejam.server.exceptions import GameNotExist, UserNotExist
 from codejam.server.interfaces.message import Message
 from codejam.server.models.game import Game
 from codejam.server.models.user import User
@@ -28,7 +29,7 @@ class ConnectionManager:
         """Get user from active connections by username."""
         user = next((x for x in self.active_connections if x.username == username), None)
         if not user:
-            raise ValueError(f"User with username: {username} does not exist!")
+            raise UserNotExist(f"User with username: {username} does not exist!")
         return user
 
     def register_game(self, creator: User) -> str:
@@ -41,7 +42,7 @@ class ConnectionManager:
     def get_game(self, game_id: str) -> Game:
         """Get game from active games."""
         if game_id not in self.active_games:
-            raise ValueError(f"Game with id: {game_id} does not exist!")
+            raise GameNotExist(f"Game with id: {game_id} does not exist!")
         return self.active_games[game_id]
 
     def join_game(self, game_id: str, new_member: User):

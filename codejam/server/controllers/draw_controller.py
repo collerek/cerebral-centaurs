@@ -20,13 +20,14 @@ class DrawController(BaseController):
     ) -> Dict[str, Callable[[Message], Coroutine[Any, Any, Any]]]:
         """Available routes for different operations."""
         return {
-            DrawOperations.LINE.value: self.draw_line,
+            DrawOperations.LINE.value: self.broadcast_drawable,
+            DrawOperations.RECT.value: self.broadcast_drawable,
         }
 
-    async def draw_line(self, message: Message):
-        """Handles drawin the line."""
+    async def broadcast_drawable(self, message: Message):
+        """Handles broadcasting the drawables."""
         if not message.game_id:
-            raise GameNotStarted("You have to join or create a game " "before you can draw")
+            raise GameNotStarted("You have to join or create a game before you can draw")
         await self.manager.broadcast(
             game_id=message.game_id,
             message=message,
