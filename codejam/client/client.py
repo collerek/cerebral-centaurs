@@ -7,14 +7,14 @@ from random import choices, random
 from typing import Callable, Dict, Tuple, cast
 
 import websockets
-from kivy.app import App, async_runTouchApp
+from kivy.app import async_runTouchApp
 from kivy.graphics import Color, Line, Rectangle
 from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
-from kivy.uix.screenmanager import Screen
+from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
 
 from codejam.server.interfaces.message import Message
@@ -234,23 +234,15 @@ class ErrorPopup(ModalView):
     error_code = StringProperty("")
 
 
-class ScreenManager(App):
-    """Root application"""
+class RootWidget(ScreenManager):
+    """Root widget"""
 
-    username = StringProperty("")
-    game_id = StringProperty("")
-
-    def build(self):
-        """Setup username and game_id"""
-        # TODO: Later set it up on frontend
-        built = Builder.load_file(f"{main_full_path}")
-        built.username = "".join(choices(string.ascii_letters + string.digits, k=8))
-        built.game_id = "randomGame"
-        return built
+    username = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
+    game_id = StringProperty("randomGame")
 
 
 Builder.load_file(f"{full_path}")
-root_widget = ScreenManager().build()
+root_widget = Builder.load_file(f"{main_full_path}")
 
 if __name__ == "__main__":  # pragma: no cover
 
