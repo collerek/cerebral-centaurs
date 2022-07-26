@@ -177,6 +177,15 @@ class TestCanvas(Widget):
         )
 
 
+class JoinScreen(Screen):
+    pass
+
+
+class MenuScreen(Screen):
+    pass
+
+
+
 class WhiteBoard(BoxLayout):
     """WhiteBoard"""
 
