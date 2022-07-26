@@ -29,7 +29,9 @@ main_full_path = root_path.joinpath("main.kv")
 class Tools(Enum):
     """Enum for all GUI tools to draw"""
 
+    CIRCLE = "circle"
     LINE = "line"
+    FRAME = "frame"
     RECT = "rect"
 
 
@@ -43,6 +45,7 @@ class TestCanvas(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.drawables: Dict[str, Callable[[MotionEvent], None]] = {
+            Tools.FRAME.value: self._draw_frame,
             Tools.LINE.value: self._draw_line,
             Tools.RECT.value: self._draw_rectangle,
         }
@@ -50,6 +53,7 @@ class TestCanvas(Widget):
         self.updates: Dict[
             str, Callable[[MotionEvent], Tuple[DrawOperations, LineData | RectData]]
         ] = {
+            Tools.FRAME.value: self._update_frame,
             Tools.LINE.value: self._update_line,
             Tools.RECT.value: self._update_rectangle,
         }
@@ -64,7 +68,7 @@ class TestCanvas(Widget):
     def select_operator(
         self, touch_data: Dict
     ) -> Callable[[MotionEvent], Tuple[DrawOperations, LineData | RectData]]:
-        """Selects operation based on keys in touc.ud dictionary"""
+        """Selects operation based on keys in touch.ud dictionary"""
         constraints = [x.value for x in Tools]
         checks = (key if key in touch_data else None for key in constraints)
         target_class = next((target for target in checks if target is not None), None)
@@ -79,6 +83,20 @@ class TestCanvas(Widget):
                 root_widget.current_screen.wb.message = self._prepare_message(
                     operation=operation, data=data
                 ).json(models_as_dict=True)
+
+    def _draw_frame(self, touch: MotionEvent) -> None:
+        """Draw a frame"""
+        touch.ud[Tools.FRAME.value] = Line(points=(touch.x, touch.y), width=self.line_width)
+
+    def _update_frame(self, touch: MotionEvent) -> Tuple[DrawOperations, LineData]:
+        """Update a frame"""
+        with self.canvas:
+            if not touch.ud.get("origin"):
+                touch.ud["origin"] = (touch.x, touch.y)
+            pos = touch.ud["origin"]
+            (x, x2), (y, y2) = [sorted((pos[0], touch.x)), sorted((pos[1], touch.y))]
+            touch.ud[Tools.FRAME.value].points = [x, y, x2, y, x2, y2, x, y2, x, y]
+        return self._prepare_frame_data(touch=touch)
 
     def _draw_line(self, touch: MotionEvent) -> None:
         """Draw a line"""
@@ -103,6 +121,16 @@ class TestCanvas(Widget):
         touch.ud[Tools.RECT.value].pos = [min(pos[0], touch.x), min(pos[1], touch.y)]
         touch.ud[Tools.RECT.value].size = [abs(touch.x - pos[0]), abs(touch.y - pos[1])]
         return self._prepare_rectangle_data(touch=touch)
+
+    def _prepare_frame_data(self, touch: MotionEvent) -> Tuple[DrawOperations, LineData]:
+        """Prepare data for line message."""
+        operation = DrawOperations.LINE
+        data = LineData(
+            line=touch.ud[Tools.FRAME.value].points,
+            colour=self.colour,
+            width=self.line_width,
+        )
+        return operation, data
 
     def _prepare_line_data(self, touch: MotionEvent) -> Tuple[DrawOperations, LineData]:
         """Prepare data for line message."""
@@ -232,6 +260,18 @@ class ErrorPopup(ModalView):
     title = StringProperty("")
     message = StringProperty("")
     error_code = StringProperty("")
+
+
+class Instructions(BoxLayout):
+    """Instructions rule"""
+
+    _canvas = ObjectProperty(None)
+
+
+class CanvasTools(BoxLayout):
+    """CanvasTools rule"""
+
+    ...
 
 
 class RootWidget(ScreenManager):
