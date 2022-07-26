@@ -22,7 +22,7 @@ repos:
   - repo: local
     hooks:
       - id: isort
-        args: [ "--profile", "black" ]
+        args: [ "--profile", "black", --line-length=99]
         name: isort (python)
         entry: isort
         files: codejam
@@ -36,7 +36,7 @@ repos:
     rev: 4.0.1
     hooks:
       - id: flake8
-        args: [ '--max-line-length=88' ]
+        args: [ '--max-line-length=99' ]
         files: codejam
         additional_dependencies:
           - flake8-docstrings~=1.6.0
@@ -45,6 +45,7 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
+        args: [ "--line-length", "99" ]
         files: codejam
 
   - repo: https://github.com/pre-commit/mirrors-mypy

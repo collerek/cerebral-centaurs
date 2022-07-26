@@ -10,6 +10,7 @@ class TopicEnum(Enum):
     GAME = "GAME"
     DRAW = "DRAW"
     CHAT = "CHAT"
+    ERROR = "ERROR"
 
 
 class GameOperations(Enum):
@@ -18,6 +19,7 @@ class GameOperations(Enum):
     CREATE = "CREATE"
     JOIN = "JOIN"
     LEAVE = "LEAVE"
+    END = "END"
 
 
 class DrawOperations(Enum):
@@ -32,11 +34,17 @@ class ChatOperations(Enum):
     SAY = "SAY"
 
 
+class ErrorOperations(Enum):
+    """Available error operations."""
+
+    BROADCAST = "BROADCAST"
+
+
 class Topic(BaseModel):
     """Message's Topic consisting of type and operation."""
 
     type: TopicEnum
-    operation: Union[GameOperations, DrawOperations]
+    operation: Union[GameOperations, DrawOperations, ChatOperations, ErrorOperations]
 
     class Config:
         use_enum_values = True
@@ -48,10 +56,9 @@ class Topic(BaseModel):
             TopicEnum.GAME.value: GameOperations,
             TopicEnum.DRAW.value: DrawOperations,
             TopicEnum.CHAT.value: ChatOperations,
+            TopicEnum.ERROR.value: ErrorOperations,
         }
-        expected_operations = allowed_operations.get(values["type"])
-        if not expected_operations or v not in set(
-            x.value for x in expected_operations
-        ):
-            raise ValueError(f"Not allowed operations for {values['type']}")
+        expected_operations = allowed_operations.get(values.get("type"))
+        if not expected_operations or v not in set(x.value for x in expected_operations):
+            raise ValueError(f"Not allowed operations for {values.get('type')}")
         return v

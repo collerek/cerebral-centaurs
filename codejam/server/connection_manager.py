@@ -1,8 +1,9 @@
 from typing import Dict, List
 
-from codejam.server.game import Game
+from codejam.server.exceptions import GameNotExist, UserNotExist
 from codejam.server.interfaces.message import Message
-from codejam.server.user import User
+from codejam.server.models.game import Game
+from codejam.server.models.user import User
 
 
 class ConnectionManager:
@@ -20,27 +21,28 @@ class ConnectionManager:
 
     def disconnect(self, user: User):
         """Remove the connections from active connections"""
+        for game in user.owned_games:
+            self.active_games.pop(game.secret)
         self.active_connections.remove(user)
 
     def get_user(self, username: str) -> User:
         """Get user from active connections by username."""
-        user = next(
-            (x for x in self.active_connections if x.username == username), None
-        )
+        user = next((x for x in self.active_connections if x.username == username), None)
         if not user:
-            raise ValueError(f"User with username: {username} does not exist!")
+            raise UserNotExist(f"User with username: {username} does not exist!")
         return user
 
     def register_game(self, creator: User) -> str:
         """Get game from active games."""
         game = Game(creator=creator)
         self.active_games[game.secret] = game
+        creator.owned_games.append(game)
         return game.secret
 
     def get_game(self, game_id: str) -> Game:
         """Get game from active games."""
         if game_id not in self.active_games:
-            raise ValueError(f"Game with id: {game_id} does not exist!")
+            raise GameNotExist(f"Game with id: {game_id} does not exist!")
         return self.active_games[game_id]
 
     def join_game(self, game_id: str, new_member: User):
