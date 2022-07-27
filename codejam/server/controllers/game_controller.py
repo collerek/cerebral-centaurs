@@ -132,10 +132,14 @@ class GameController(BaseController):
     async def create_game(self, message: Message):
         """Create a new game for a user."""
         user = self.manager.get_user(message.username)
+<<<<<<< HEAD
         difficulty = message.value.difficulty if hasattr(message.value, "difficulty") else None
         game_id = self.manager.register_game(
             creator=user, game_id=message.game_id, difficulty=difficulty
         )
+=======
+        game_id = self.manager.register_game(creator=user, game_id=message.game_id)
+>>>>>>> 9c4b307 (client controlled game_id)
         self.manager.join_game(game_id=game_id, new_member=user)
         message = Message(
             topic=Topic(type=TopicEnum.GAME.value, operation=GameOperations.CREATE.value),
