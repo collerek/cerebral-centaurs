@@ -14,7 +14,7 @@
         Label:
             color: 1, 0, 1, 1
             id: label
-            size_hint_y: .25
+            size_hint_y: .1
             font_size: dp(10)
             text_size: self.width, None
             texture_size: self.size
@@ -45,7 +45,7 @@
                         pos: self.x + self.offset_x, self.y + self.offset_y
                         size: self.size
             CanvasTools:
-                size_hint_y: .2
+                size_hint: .6, .2
                 id: tools
                 _canvas: canvas
             Instructions:
@@ -59,6 +59,16 @@
                 text: '>' if instructions.x < 0 else '<'
                 on_release:
                     instructions.x = [-instructions.width, self.x][self.text == '>']
+            ChatWindow:
+                id: chat_window
+                hidden: False
+                pos_hint: {'right':.98, 'top':.95} if not self.hidden else {'x': 1}
+                size_hint: .2, .9
+            Button:
+                text: 'show' if chat_window.hidden else 'hide'
+                pos_hint: {'right':.98, 'y': 0}
+                size_hint: .05,.05
+                on_release: chat_window.hidden = not chat_window.hidden
 
 
 <CanvasTools>:
