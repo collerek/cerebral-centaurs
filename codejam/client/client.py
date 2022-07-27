@@ -2,6 +2,7 @@ import asyncio
 import json
 import pathlib
 import string
+import uuid
 from enum import Enum
 from random import choices, random
 from typing import Callable, Dict, Tuple, cast
@@ -51,7 +52,7 @@ class TestCanvas(Widget):
         }
 
         self.updates: Dict[
-            str, Callable[[MotionEvent], Tuple[DrawOperations, LineData | RectData]]
+            str, Callable[[MotionEvent], Tuple[uuid.UUID, DrawOperations, LineData | RectData]]
         ] = {
             Tools.FRAME.value: self._update_frame,
             Tools.LINE.value: self._update_line,
@@ -67,7 +68,7 @@ class TestCanvas(Widget):
 
     def select_operator(
         self, touch_data: Dict
-    ) -> Callable[[MotionEvent], Tuple[DrawOperations, LineData | RectData]]:
+    ) -> Callable[[MotionEvent], Tuple[uuid.UUID, DrawOperations, LineData | RectData]]:
         """Selects operation based on keys in touch.ud dictionary"""
         constraints = [x.value for x in Tools]
         checks = (key if key in touch_data else None for key in constraints)
@@ -79,16 +80,17 @@ class TestCanvas(Widget):
         if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
             operator = self.select_operator(touch.ud)
             if operator:
-                operation, data = operator(touch)
+                draw_id, operation, data = operator(touch)
                 root_widget.current_screen.wb.message = self._prepare_message(
-                    operation=operation, data=data
+                    draw_id=draw_id, operation=operation, data=data
                 ).json(models_as_dict=True)
 
     def _draw_frame(self, touch: MotionEvent) -> None:
         """Draw a frame"""
         touch.ud[Tools.FRAME.value] = Line(points=(touch.x, touch.y), width=self.line_width)
+        self.ids[uuid.uuid4()] = touch.ud[Tools.FRAME.value]
 
-    def _update_frame(self, touch: MotionEvent) -> Tuple[DrawOperations, LineData]:
+    def _update_frame(self, touch: MotionEvent) -> Tuple[uuid.UUID, DrawOperations, LineData]:
         """Update a frame"""
         with self.canvas:
             if not touch.ud.get("origin"):
@@ -101,19 +103,19 @@ class TestCanvas(Widget):
     def _draw_line(self, touch: MotionEvent) -> None:
         """Draw a line"""
         touch.ud[Tools.LINE.value] = Line(points=(touch.x, touch.y), width=self.line_width)
+        self.ids[uuid.uuid4()] = touch.ud[Tools.LINE.value]
 
-    def _update_line(self, touch: MotionEvent) -> Tuple[DrawOperations, LineData]:
+    def _update_line(self, touch: MotionEvent) -> Tuple[uuid.UUID, DrawOperations, LineData]:
         """Update a line"""
         with self.canvas:
             touch.ud[Tools.LINE.value].points += (touch.x, touch.y)
         return self._prepare_line_data(touch=touch)
 
-    @staticmethod
-    def _draw_rectangle(touch: MotionEvent) -> None:
+    def _draw_rectangle(self, touch: MotionEvent) -> None:
         """Draw a rectangle"""
         touch.ud[Tools.RECT.value] = Rectangle(pos=(touch.x, touch.y), size=(0, 0))
 
-    def _update_rectangle(self, touch: MotionEvent) -> Tuple[DrawOperations, RectData]:
+    def _update_rectangle(self, touch: MotionEvent) -> Tuple[uuid.UUID, DrawOperations, RectData]:
         """Update rectangle"""
         if not touch.ud.get("origin"):
             touch.ud["origin"] = (touch.x, touch.y)
@@ -122,44 +124,56 @@ class TestCanvas(Widget):
         touch.ud[Tools.RECT.value].size = [abs(touch.x - pos[0]), abs(touch.y - pos[1])]
         return self._prepare_rectangle_data(touch=touch)
 
-    def _prepare_frame_data(self, touch: MotionEvent) -> Tuple[DrawOperations, LineData]:
+    def _prepare_frame_data(
+        self, touch: MotionEvent
+    ) -> Tuple[uuid.UUID, DrawOperations, LineData]:
         """Prepare data for line message."""
-        operation = DrawOperations.LINE
+        draw_id = uuid.uuid4()
+        operation = DrawOperations.FRAME
         data = LineData(
             line=touch.ud[Tools.FRAME.value].points,
             colour=self.colour,
             width=self.line_width,
         )
-        return operation, data
+        self.ids[draw_id] = touch.ud[Tools.FRAME.value]
+        return draw_id, operation, data
 
-    def _prepare_line_data(self, touch: MotionEvent) -> Tuple[DrawOperations, LineData]:
+    def _prepare_line_data(self, touch: MotionEvent) -> Tuple[uuid.UUID, DrawOperations, LineData]:
         """Prepare data for line message."""
+        draw_id = uuid.uuid4()
         operation = DrawOperations.LINE
         data = LineData(
             line=touch.ud[Tools.LINE.value].points[-4:],
             colour=self.colour,
             width=self.line_width,
         )
-        return operation, data
+        self.ids[draw_id] = touch.ud[Tools.LINE.value]
+        return draw_id, operation, data
 
-    def _prepare_rectangle_data(self, touch: MotionEvent) -> Tuple[DrawOperations, RectData]:
+    def _prepare_rectangle_data(
+        self, touch: MotionEvent
+    ) -> Tuple[uuid.UUID, DrawOperations, RectData]:
         """Prepare data for rectangle message."""
+        draw_id = uuid.uuid4()
         operation = DrawOperations.RECT
         data = RectData(
             pos=touch.ud[Tools.RECT.value].pos,
             colour=self.colour,
             size=touch.ud[Tools.RECT.value].size,
         )
-        return operation, data
+        self.ids[draw_id] = touch.ud[Tools.RECT.value]
+        return draw_id, operation, data
 
     @staticmethod
-    def _prepare_message(operation: DrawOperations, data: LineData | RectData) -> Message:
+    def _prepare_message(
+        draw_id: uuid.UUID, operation: DrawOperations, data: LineData | RectData
+    ) -> Message:
         """Prepare the draw message."""
         return Message(
             topic=Topic(type=TopicEnum.DRAW, operation=operation),
             username=root_widget.username,
             game_id=root_widget.game_id,
-            value=PictureMessage(data=data),
+            value=PictureMessage(draw_id=str(draw_id), data=data),
         )
 
 
@@ -171,42 +185,47 @@ class WhiteBoard(BoxLayout):
     message = StringProperty("")
     received = StringProperty("")
 
-    def on_received(self, instance: Widget, value: str) -> None:
-        """Called when received message"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         # TODO: refactor
-        draw_callbacks: Dict[str, Callable[[Message], None]] = {
+        self.draw_callbacks: Dict[str, Callable[[Message], None]] = {
             DrawOperations.LINE.value: self.draw_line,
             DrawOperations.RECT.value: self.draw_rectangle,
+            DrawOperations.FRAME.value: self.draw_line,
         }
-        game_callbacks: Dict[str, Callable[[Message], None]] = {}
-        chat_callbacks: Dict[str, Callable[[Message], None]] = {}
-        error_callbacks: Dict[str, Callable[[Message], None]] = {
+        self.game_callbacks: Dict[str, Callable[[Message], None]] = {}
+        self.chat_callbacks: Dict[str, Callable[[Message], None]] = {}
+        self.error_callbacks: Dict[str, Callable[[Message], None]] = {
             ErrorOperations.BROADCAST.value: self.display_error
         }
 
-        callbacks: Dict[str, Dict] = {
-            TopicEnum.DRAW.value: draw_callbacks,
-            TopicEnum.GAME.value: game_callbacks,
-            TopicEnum.CHAT.value: chat_callbacks,
-            TopicEnum.ERROR.value: error_callbacks,
+        self.callbacks: Dict[str, Dict] = {
+            TopicEnum.DRAW.value: self.draw_callbacks,
+            TopicEnum.GAME.value: self.game_callbacks,
+            TopicEnum.CHAT.value: self.chat_callbacks,
+            TopicEnum.ERROR.value: self.error_callbacks,
         }
 
+    def on_received(self, instance: Widget, value: str) -> None:
+        """Called when received message"""
         self.btn_text = value
         parsed = Message(**json.loads(value))
-        callback = callbacks[cast(str, parsed.topic.type)][parsed.topic.operation]
+        callback = self.callbacks[cast(str, parsed.topic.type)][parsed.topic.operation]
         callback(parsed)
 
     def draw_line(self, message: Message) -> None:
         """Draw lines from other clients"""
         with self.canvas:
             Color(hsv=message.value.data.colour)
-            Line(points=message.value.data.line, width=message.value.data.width)
+            line = Line(points=message.value.data.line, width=message.value.data.width)
+            self.ids[message.value.draw_id] = line
 
     def draw_rectangle(self, message: Message) -> None:
         """Draw rectangle from other clients"""
         with self.canvas:
             Color(hsv=message.value.data.colour)
-            Rectangle(pos=message.value.data.pos, size=message.value.data.size)
+            rect = Rectangle(pos=message.value.data.pos, size=message.value.data.size)
+            self.ids[message.value.draw_id] = rect
 
     @staticmethod
     def display_error(message: Message) -> None:
