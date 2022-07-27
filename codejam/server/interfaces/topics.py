@@ -27,6 +27,7 @@ class DrawOperations(Enum):
 
     LINE = "LINE"
     RECT = "RECT"
+    FRAME = "FRAME"
 
 
 class ChatOperations(Enum):

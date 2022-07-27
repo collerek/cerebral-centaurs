@@ -22,6 +22,7 @@ class DrawController(BaseController):
         return {
             DrawOperations.LINE.value: self.broadcast_drawable,
             DrawOperations.RECT.value: self.broadcast_drawable,
+            DrawOperations.FRAME.value: self.broadcast_drawable,
         }
 
     async def broadcast_drawable(self, message: Message):
