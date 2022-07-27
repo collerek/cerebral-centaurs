@@ -3,8 +3,10 @@ from typing import Any, Callable, Coroutine, Dict
 
 from codejam.server.connection_manager import ConnectionManager
 from codejam.server.controllers.base_controller import BaseController
+from codejam.server.controllers.game_controller import GameController
+from codejam.server.interfaces.game_message import GameMessage, TurnMessage
 from codejam.server.interfaces.message import Message
-from codejam.server.interfaces.topics import ChatOperations
+from codejam.server.interfaces.topics import ChatOperations, GameOperations, Topic, TopicEnum
 
 
 class ChatController(BaseController):
@@ -20,8 +22,56 @@ class ChatController(BaseController):
         """Available routes for different operations."""
         return {ChatOperations.SAY.value: self.say}
 
+    async def check_if_we_have_a_winner(self, message: Message):
+        """Check if someone posted the answer in the chat."""
+        user = self.manager.get_user(message.username)
+        game = self.manager.get_game(game_id=message.game_id)
+        current_turn = game.current_turn
+        if (
+            current_turn
+            and current_turn.phrase.lower() == message.value.message.lower()
+            and current_turn.drawer.username != message.username
+        ):
+            game.win(user)
+            won_message = Message(
+                topic=Topic(type=TopicEnum.GAME.value, operation=GameOperations.WIN.value),
+                username=game.creator.username,
+                game_id=game.secret,
+                value=GameMessage(
+                    success=True,
+                    game_id=game.secret,
+                    turn=TurnMessage(
+                        turn_no=current_turn.turn_no,
+                        level=current_turn.level,
+                        drawer=current_turn.drawer.username,
+                        duration=current_turn.duration,
+                        phrase=current_turn.phrase,
+                        score=game.score,
+                        winner=user.username,
+                    ),
+                ),
+            )
+            await self.manager.broadcast(
+                game_id=won_message.game_id,
+                message=won_message,
+            )
+            game_controller = GameController(manager=self.manager)
+            await game_controller.execute_turn(game=game, user=user)
+
+    def censor_drawer(self, message: Message) -> Message:
+        """Removes words from chat that are in the guess phrase."""
+        user = self.manager.get_user(message.username)
+        game = self.manager.get_game(game_id=message.game_id)
+        if game.current_turn and game.current_turn.drawer.username == user.username:
+            tokens = [x.lower() for x in game.current_turn.phrase.split()]
+            censored = [x for x in message.value.message.split(" ") if x.lower() not in tokens]
+            message.value.message = " ".join(censored)
+        return message
+
     async def say(self, message: Message):
         """Handles sending the chat message."""
+        message = self.censor_drawer(message=message)
+        await self.check_if_we_have_a_winner(message=message)
         await self.manager.broadcast(
             game_id=message.game_id,
             message=message,
