@@ -20,7 +20,7 @@ from kivy.uix.widget import Widget
 
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
-from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, Topic, TopicEnum
+from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, Topic, TopicEnum, GameOperations
 
 root_path = pathlib.Path(__file__).parent.resolve()
 full_path = root_path.joinpath("whiteboards.kv")
@@ -185,6 +185,9 @@ class MenuScreen(Screen):
     pass
 
 
+class LobbyScreen(Screen):
+    pass
+
 
 class WhiteBoard(BoxLayout):
     """WhiteBoard"""
@@ -254,6 +257,20 @@ class WhiteBoardScreen(Screen):
         """Called when the screen is about to be shown."""
         if not self.manager.ws:
             self.manager.ws = asyncio.create_task(self.run_websocket())
+        if self.manager.create_room:
+            """Create new room"""
+            root_widget.current_screen.wb.message = Message(
+                topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
+                username=self.manager.username,
+                game_id=self.manager.game_id,
+            ).json(models_as_dict=True)
+        else:
+            """Join existing room"""
+            root_widget.current_screen.wb.message = Message(
+                topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
+                username=self.manager.username,
+                game_id=self.manager.game_id,
+            ).json(models_as_dict=True)
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
@@ -304,6 +321,7 @@ class CanvasTools(BoxLayout):
 
 class RootWidget(ScreenManager):
     """Root widget"""
+    create_room = ObjectProperty(False)
 
     username = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
     game_id = StringProperty("randomGame")
