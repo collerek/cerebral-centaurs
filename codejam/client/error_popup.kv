@@ -28,22 +28,23 @@ RootWidget:
     ws: False
     MenuScreen:
         TextInput:
-            pos: 200, 500
-            size_hint: None, None
-            size: 400, 40
+            font_size: self.height * 0.6
+            pos_hint: {"x": .25, "y": .8}
+            size_hint: .5, .1
             hint_text: 'username'
             multiline: False
             on_text_validate:
                 root.username = self.text
         Button:
-            pos: 400, 0
-            size_hint: None, None
-            size: 400, 400
+            font_size: self.width / 10
+            pos: root.width / 2, 0
+            size_hint: .5, .6
             text: "join room"
             on_release: root.current = 'join'
         Button:
-            size_hint: None, None
-            size: 400, 400
+            font_size: self.width / 10
+            pos: 0, 0
+            size_hint: .5, .6
             text: "create room"
             on_release:
                 root.create_room = True
@@ -52,17 +53,17 @@ RootWidget:
     JoinScreen:
         name: 'join'
         TextInput:
-            pos: 200, 400
-            size_hint: None, None
-            size: 200, 40
+            font_size: self.height * 0.6
+            pos_hint: {"x": .25, "y": .8}
+            size_hint: .5, .1
             hint_text: 'entry code'
             multiline: False
             on_text_validate:
                 root.game_id = self.text
         Button:
-            pos: 200, 100
-            size_hint: None, None
-            size: 400, 200
+            font_size: self.width / 10
+            pos: root.width / 4, root.width / 8
+            size_hint: .5, .4
             text: "join room"
             on_release:
                 root.current = 'whiteboard'
