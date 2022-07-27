@@ -102,7 +102,7 @@ class GameController(BaseController):
     async def create_game(self, message: Message):
         """Create a new game for a user."""
         user = self.manager.get_user(message.username)
-        game_id = self.manager.register_game(creator=user)
+        game_id = self.manager.register_game(creator=user, game_id=message.game_id)
         self.manager.join_game(game_id=game_id, new_member=user)
         message = Message(
             topic=Topic(type=TopicEnum.GAME.value, operation=GameOperations.CREATE.value),
