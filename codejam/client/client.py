@@ -18,6 +18,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
 
+from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
 from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, Topic, TopicEnum, GameOperations
@@ -185,10 +186,6 @@ class MenuScreen(Screen):
     pass
 
 
-class LobbyScreen(Screen):
-    pass
-
-
 class WhiteBoard(BoxLayout):
     """WhiteBoard"""
 
@@ -263,6 +260,10 @@ class WhiteBoardScreen(Screen):
                 topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
                 username=self.manager.username,
                 game_id=self.manager.game_id,
+                value=GameMessage(
+                    success=False,
+                    game_id=self.manager.game_id
+                )
             ).json(models_as_dict=True)
         else:
             """Join existing room"""
@@ -270,6 +271,10 @@ class WhiteBoardScreen(Screen):
                 topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
                 username=self.manager.username,
                 game_id=self.manager.game_id,
+                value=GameMessage(
+                    success=False,
+                    game_id=self.manager.game_id
+                )
             ).json(models_as_dict=True)
 
     async def run_websocket(self) -> None:
@@ -307,9 +312,8 @@ class RootWidget(ScreenManager):
     create_room = ObjectProperty(False)
 
     username = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
-    game_id = StringProperty("randomGame")
+    game_id = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
     ws = ObjectProperty(None)
-
 
 
 Builder.load_file(f"{full_path}")
