@@ -34,8 +34,7 @@ RootWidget:
             hint_text: 'username'
             multiline: False
             on_text_validate:
-                client_id = self.text
-                print(client_id)
+                root.username = self.text
         Button:
             pos: 400, 0
             size_hint: None, None
@@ -47,22 +46,25 @@ RootWidget:
             size: 400, 400
             text: "create room"
             on_release:
+                root.create_room = True
                 root.current = 'whiteboard'
+                root.create_room = False
     JoinScreen:
         name: 'join'
         TextInput:
             pos: 200, 400
             size_hint: None, None
             size: 200, 40
-            text: 'entry code'
+            hint_text: 'entry code'
             multiline: False
             on_text_validate:
-                game_id = self.text
+                root.game_id = self.text
         Button:
             pos: 200, 100
             size_hint: None, None
             size: 400, 200
             text: "join room"
-            on_release: root.current = 'whiteboard'
+            on_release:
+                root.current = 'whiteboard'
     WhiteBoardScreen:
         name: 'whiteboard'
