@@ -20,6 +20,9 @@ class GameOperations(Enum):
     JOIN = "JOIN"
     LEAVE = "LEAVE"
     END = "END"
+    START = "START"
+    TURN = "TURN"
+    WIN = "WIN"
 
 
 class DrawOperations(Enum):
@@ -64,3 +67,10 @@ class Topic(BaseModel):
         if not expected_operations or v not in set(x.value for x in expected_operations):
             raise ValueError(f"Not allowed operations for {values.get('type')}")
         return v
+
+
+class GameLevel(Enum):
+    """Represent game difficulty levels."""
+
+    EASY = "EASY"
+    HARD = "HARD"

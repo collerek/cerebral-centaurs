@@ -57,6 +57,6 @@ class ConnectionManager:
         """Remove the connections from active connections"""
         self.get_game(game_id=game_id).leave(member)
 
-    async def broadcast(self, game_id: str, message: Message):
-        """Broadcast the message to all active clients"""
-        await self.get_game(game_id=game_id).broadcast(message=message)
+    async def broadcast(self, game_id: str, message: Message, exclude: List[User] = None):
+        """Broadcast the message to all active clients except excluded ones."""
+        await self.get_game(game_id=game_id).broadcast(message=message, exclude=exclude)

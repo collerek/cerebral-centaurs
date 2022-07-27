@@ -3,7 +3,7 @@ name = "Codejam"
 version = "0.1.0"
 description = ""
 authors = [
-    "collerek <collerek@gmail.com>", "hyturtle <mulov10d@duck.com>", "jessevz <jessevanzutphen7@hotmail.com>",
+    "collerek <collerek@gmail.com>", "hyturtle <mulov10d@duck.com>",
     "DominikKor <droko@gmx.de>", "Palmirka <palmirkas@gmail.com>"
 ]
 license = "MIT"

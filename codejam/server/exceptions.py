@@ -20,3 +20,11 @@ class GameNotExist(WhiteBoardException):
 
 class UserNotExist(WhiteBoardException):
     """Raised when user with given username does not exist."""
+
+
+class NotEnoughPlayers(WhiteBoardException):
+    """Raised when user want to start a game with < 3 players."""
+
+
+class CannotStartNotOwnGame(WhiteBoardException):
+    """Raised when user want to start a game with < 3 players."""
