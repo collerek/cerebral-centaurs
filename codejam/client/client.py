@@ -23,7 +23,8 @@ from codejam.server.interfaces.picture_message import LineData, PictureMessage, 
 from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, Topic, TopicEnum
 
 root_path = pathlib.Path(__file__).parent.resolve()
-full_path = root_path.joinpath("whiteboards.kv")
+kvs = ["chat", "error_popup", "whiteboards"]
+
 main_full_path = root_path.joinpath("main.kv")
 
 
@@ -293,6 +294,23 @@ class CanvasTools(BoxLayout):
     ...
 
 
+class Chat(BoxLayout):
+    """Chat rule"""
+
+    message = StringProperty("")
+    username = StringProperty("")
+
+
+class ChatWindow(BoxLayout):
+    """ChatWindow rule"""
+
+    def add_message(self, message: str) -> None:
+        """Add message to chat window."""
+        self.ids.chat_scroll.ids.chat_box.add_widget(
+            Chat(message=message, username=root_widget.username)
+        )
+
+
 class RootWidget(ScreenManager):
     """Root widget"""
 
@@ -300,7 +318,8 @@ class RootWidget(ScreenManager):
     game_id = StringProperty("randomGame")
 
 
-Builder.load_file(f"{full_path}")
+for filename in kvs:
+    Builder.load_file(f"{root_path.joinpath(f'{filename}.kv')}")
 root_widget = Builder.load_file(f"{main_full_path}")
 
 if __name__ == "__main__":  # pragma: no cover
