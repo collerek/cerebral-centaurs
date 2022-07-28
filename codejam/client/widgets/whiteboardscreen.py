@@ -3,6 +3,10 @@ import asyncio
 import websockets
 from kivy.uix.screenmanager import Screen
 
+from codejam.server.interfaces.game_message import GameMessage
+from codejam.server.interfaces.message import Message
+from codejam.server.interfaces.topics import GameOperations, Topic, TopicEnum
+
 
 class WhiteBoardScreen(Screen):
     """WhiteBoardScreen"""
@@ -11,6 +15,32 @@ class WhiteBoardScreen(Screen):
         """Called when the screen is about to be shown."""
         if not self.manager.ws:
             self.manager.ws = asyncio.create_task(self.run_websocket())
+        if self.manager.create_room:
+            """Create new room"""
+            self.wb.message = self._prepare_message(operation=GameOperations.CREATE).json(
+                models_as_dict=True
+            )
+        else:
+            """Join existing room"""
+            self.wb.message = self._prepare_message(operation=GameOperations.JOIN).json(
+                models_as_dict=True
+            )
+
+    def start_game(self) -> None:
+        """Start game"""
+        self.wb.message = self._prepare_message(operation=GameOperations.START).json(
+            models_as_dict=True
+        )
+
+    def _prepare_message(self, operation: GameOperations, include_game_id: bool = True):
+        """Helper to create proper messages."""
+        game_id = self.manager.game_id if include_game_id else None
+        return Message(
+            topic=Topic(type=TopicEnum.GAME, operation=operation),
+            username=self.manager.username,
+            game_id=game_id,
+            value=GameMessage(success=False, game_id=game_id),
+        )
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""

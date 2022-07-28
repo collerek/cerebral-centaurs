@@ -35,12 +35,12 @@ class Turn:
 class Game:
     """Represents a game instance between players."""
 
-    def __init__(self, creator: User) -> None:
+    def __init__(self, creator: User, game_id: str = None) -> None:
         self.winner_scores = {GameLevel.EASY: 50, GameLevel.HARD: 100}
         self.allowed_durations = [30, 60]
         self.creator = creator
         self.members: List[User] = []
-        self.secret = "".join(choices(string.ascii_letters + string.digits, k=8))
+        self.secret = game_id or "".join(choices(string.ascii_letters + string.digits, k=8))
         self.current_turn_no = 0
         self.history: List[Message] = []
         self.turns_history: List[Turn] = []

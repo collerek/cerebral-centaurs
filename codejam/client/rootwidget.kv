@@ -1,8 +1,68 @@
+<Lobby@RelativeLayout>
+
+<MenuScreen@Screen>
+
+<GameButton@Button>:
+    size_hint: 0.4, 0.5
+    background_color: 0, 0, 0, 1
+    font_size: sp(25)
+
+<LobbyButton@Button>:
+    text: "Start game"
+    pos_hint: {"x": 0.3, "y": 0.4}
+    size_hint: 0.4, 0.2
+
 RootWidget:
     ws: False
-    Screen:
-        Button:
-            on_release: root.current = 'whiteboard'
+    MenuScreen:
+        TextInput:
+            font_size: self.height * 0.6
+            pos_hint: {"x": .25, "y": .8}
+            size_hint: .5, .1
+            hint_text: 'username'
+            multiline: False
+            on_text_validate:
+                root.username = self.text
+        TextInput:
+            font_size: self.height * 0.6
+            pos_hint: {"x": .25, "y": .7}
+            size_hint: .5, .1
+            hint_text: 'entry code'
+            multiline: False
+            on_text_validate:
+                root.game_id = self.text
+        GameButton:
+            canvas.before:
+                Color:
+                    rgba: .2, .5, .9, 1
+                Line:
+                    width: 5
+                    rectangle: self.x, self.y, self.width, self.height
+            color: 0.2, 0.5, 0.9, 1
+            pos: root.width * 0.55, root.height * 0.05
+            text: "join room"
+            on_release:
+                root.current = 'whiteboard'
+        GameButton:
+            canvas.before:
+                Color:
+                    rgba: .5, .2, .9, 1
+                Line:
+                    width: 5
+                    rectangle: self.x, self.y, self.width, self.height
+            color: 0.5, 0.2, 0.9, 1
+            pos: root.width * 0.05, root.height * 0.05
+            size_hint: .4, .5
+            text: "create room"
+            on_release:
+                root.create_room = True
+                root.current = 'whiteboard'
     WhiteBoardScreen:
-        id: whiteboard
+        id: wbs
         name: 'whiteboard'
+        Lobby:
+            LobbyButton:
+                on_release:
+                    wbs.start_game()
+                    self.disabled = True
+                    self.opacity = 0

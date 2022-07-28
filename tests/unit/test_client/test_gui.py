@@ -12,12 +12,13 @@ from codejam.client.widgets.chatwindow import Chat
 from codejam.client.widgets.drawcanvas import Tools
 from codejam.server.interfaces.chat_message import ChatMessage
 from codejam.server.interfaces.error_message import ErrorMessage
+from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
 from codejam.server.interfaces.topics import (
     ChatOperations, DrawOperations,
     ErrorOperations,
-    Topic,
+    GameOperations, Topic,
     TopicEnum,
 )
 
@@ -83,19 +84,43 @@ def test_chat_message() -> Message:
 
 
 @pytest.fixture(scope="class")
+def game_start_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.START),
+        username=root_widget.username,
+        game_id=root_widget.game_id,
+        value=GameMessage(success=True, game_id=root_widget.game_id),
+    )
+
+
+@pytest.fixture(scope="class")
+def game_creation_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
+        username=root_widget.username,
+        game_id="newID",
+        value=GameMessage(success=True, game_id="newID"),
+    )
+
+
+@pytest.fixture(scope="class")
 def test_data(
     request,
     test_error: Message,
     test_rectangle: Message,
     test_line: Message,
     test_frame: Message,
-    test_chat_message: Message
+    test_chat_message: Message,
+    game_start_message: Message,
+    game_creation_message: Message
 ) -> None:
     request.cls.test_error = test_error
     request.cls.test_rectangle = test_rectangle
     request.cls.test_line = test_line
     request.cls.test_frame = test_frame
     request.cls.test_message = test_chat_message
+    request.cls.game_start_message = game_start_message
+    request.cls.game_create_message = game_creation_message
 
 
 @pytest.mark.usefixtures("test_data")
@@ -284,6 +309,30 @@ class BasicDrawingTestCase(GraphicUnitTest):
         assert isinstance(first_message, Chat)
         assert first_message.message == incoming_message.value.message
         assert first_message.sender == incoming_message.value.sender
+
+    def test_creating_game_from_websocket(self, *args):
+        self.root_widget = root_widget
+        self.render(self.root_widget)
+        wb_screen = self.root_widget.get_screen("whiteboard")
+
+        incoming_message = self.game_create_message.copy(deep=True)
+        wb_screen.wb.received = incoming_message.json()
+        assert json.loads(wb_screen.wb.btn_text) == incoming_message.dict()
+
+        self.advance_frames(2)
+        assert wb_screen.game_id == incoming_message.value.game_id
+
+    def test_starting_game_from_websocket(self, *args):
+        self.root_widget = root_widget
+        self.render(self.root_widget)
+        wb_screen = self.root_widget.get_screen("whiteboard")
+
+        incoming_message = self.game_start_message.copy(deep=True)
+        wb_screen.wb.received = incoming_message.json()
+        assert json.loads(wb_screen.wb.btn_text) == incoming_message.dict()
+
+        self.advance_frames(2)
+        assert wb_screen.game_active
 
     def test_drawing_line_from_websocket(self, *args):
         EventLoop.ensure_window()
