@@ -8,7 +8,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import root_widget
-from codejam.client.widgets.testcanvas import Tools
+from codejam.client.widgets.drawcanvas import Tools
 from codejam.server.interfaces.error_message import ErrorMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData

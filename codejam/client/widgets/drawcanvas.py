@@ -22,7 +22,7 @@ class Tools(Enum):
     RECT = "rect"
 
 
-class TestCanvas(Widget):
+class DrawCanvas(Widget):
     """TestCanvas Widget"""
 
     colour = ListProperty([random(), 1, 1])

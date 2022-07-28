@@ -8,7 +8,7 @@ from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.screenmanager import ScreenManager
 
-from codejam.client.widgets.testcanvas import TestCanvas  # noqa: F401
+from codejam.client.widgets.drawcanvas import DrawCanvas  # noqa: F401
 from codejam.client.widgets.whiteboard import WhiteBoard  # noqa: F401
 from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen  # noqa: F401
 
