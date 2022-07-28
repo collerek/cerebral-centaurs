@@ -1,15 +1,11 @@
-import pathlib
-import string
 import uuid
 from enum import Enum
-from random import choices, random
+from random import random
 from typing import Callable, Dict, Tuple
 
 from kivy.graphics import Color, Line, Rectangle
 from kivy.input import MotionEvent
-from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, StringProperty
-from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.widget import Widget
 
 from codejam.server.interfaces.message import Message
@@ -71,7 +67,7 @@ class TestCanvas(Widget):
             operator = self.select_operator(touch.ud)
             if operator:
                 draw_id, operation, data = operator(touch)
-                root_widget.current_screen.wb.message = self._prepare_message(
+                self.root.message = self._prepare_message(
                     draw_id=draw_id, operation=operation, data=data
                 ).json(models_as_dict=True)
 
@@ -154,29 +150,13 @@ class TestCanvas(Widget):
         self.ids[draw_id] = touch.ud[Tools.RECT.value]
         return draw_id, operation, data
 
-    @staticmethod
     def _prepare_message(
-        draw_id: uuid.UUID, operation: DrawOperations, data: LineData | RectData
+        self, draw_id: uuid.UUID, operation: DrawOperations, data: LineData | RectData
     ) -> Message:
         """Prepare the draw message."""
         return Message(
             topic=Topic(type=TopicEnum.DRAW, operation=operation),
-            username=root_widget.username,
-            game_id=root_widget.game_id,
+            username=self.wbs.manager.username,
+            game_id=self.wbs.manager.game_id,
             value=PictureMessage(draw_id=str(draw_id), data=data),
         )
-
-
-root_path = pathlib.Path(__file__).parent.resolve()
-
-main_full_path = root_path.joinpath("rootwidget.kv")
-
-
-class RootWidget(ScreenManager):
-    """Root widget"""
-
-    username = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
-    game_id = StringProperty("randomGame")
-
-
-root_widget = Builder.load_file(f"{main_full_path}")
