@@ -3,7 +3,8 @@ import asyncio
 import pytest
 from kivy.lang import Builder
 
-from codejam.client.client import WhiteBoardScreen, main_full_path
+from codejam.client.client import main_full_path
+from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen
 
 
 @pytest.mark.asyncio
