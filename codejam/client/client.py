@@ -6,16 +6,16 @@ from enum import Enum
 from random import choices, random
 from typing import Callable, Dict, Tuple
 
-import websockets
 from kivy.app import async_runTouchApp
 from kivy.graphics import Color, Line, Rectangle
 from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, StringProperty
-from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.widget import Widget
 
 from codejam.client.widgets.whiteboard import WhiteBoard  # noqa: F401
+from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen  # noqa: F401
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
 from codejam.server.interfaces.topics import DrawOperations, Topic, TopicEnum
@@ -173,41 +173,6 @@ class TestCanvas(Widget):
             game_id=root_widget.game_id,
             value=PictureMessage(draw_id=str(draw_id), data=data),
         )
-
-
-class WhiteBoardScreen(Screen):
-    """WhiteBoardScreen"""
-
-    def on_pre_enter(self) -> None:
-        """Called when the screen is about to be shown."""
-        if not self.manager.ws:
-            self.manager.ws = asyncio.create_task(self.run_websocket())
-
-    async def run_websocket(self) -> None:
-        """Runs the websocket client and send messages."""
-        url = "ws://127.0.0.1:8000/ws/{0}".format(self.manager.username)
-        try:
-            print(url)
-            async with websockets.connect(url) as websocket:
-                try:
-                    while True:
-                        if m := self.wb.message:
-                            self.wb.message = ""
-                            print("sending " + m)
-                            await websocket.send(m)
-                        try:
-                            self.wb.received = await asyncio.wait_for(
-                                websocket.recv(), timeout=1 / 60
-                            )
-                        except asyncio.exceptions.TimeoutError:
-                            continue
-                        await asyncio.sleep(1 / 60)
-                except asyncio.CancelledError as e:
-                    print("Loop canceled", e)
-                finally:
-                    print("Loop finished")
-        except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
-            print("Connection refused", e)
 
 
 class RootWidget(ScreenManager):
