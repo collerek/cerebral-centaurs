@@ -10,7 +10,12 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.widget import Widget
 
 from codejam.server.interfaces.message import Message
-from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, TopicEnum
+from codejam.server.interfaces.topics import (
+    ChatOperations,
+    DrawOperations,
+    ErrorOperations,
+    TopicEnum,
+)
 
 
 class WhiteBoard(BoxLayout):
@@ -30,7 +35,9 @@ class WhiteBoard(BoxLayout):
             DrawOperations.FRAME.value: self.draw_line,
         }
         self.game_callbacks: dict[str, Callable[[Message], None]] = {}
-        self.chat_callbacks: dict[str, Callable[[Message], None]] = {}
+        self.chat_callbacks: dict[str, Callable[[Message], None]] = {
+            ChatOperations.SAY.value: self.chat_say
+        }
         self.error_callbacks: dict[str, Callable[[Message], None]] = {
             ErrorOperations.BROADCAST.value: self.display_error
         }
@@ -48,6 +55,10 @@ class WhiteBoard(BoxLayout):
         parsed = Message(**json.loads(value))
         callback = self.callbacks[cast(str, parsed.topic.type)][parsed.topic.operation]
         callback(parsed)
+
+    def chat_say(self, message: Message) -> None:
+        """Chat message from other clients"""
+        self.parent.ids.chat_window.add_message(**message.value.dict())
 
     def draw_line(self, message: Message) -> None:
         """Draw lines from other clients"""
