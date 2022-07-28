@@ -140,16 +140,15 @@
     BoxLayout:
         orientation: 'vertical'
         Label:
-            text: ''
-        BoxLayout:
-            Button:
-                text: '-'
-                on_release:
-                    root._canvas.line_width -= 1
-            Button:
-                text: '+'
-                on_release:
-                    root._canvas.line_width += 1
+            text: str(slider.value)
+        Slider:
+            id: slider
+            opacity: 0
+            value: 2
+            min: 1
+            max: 50
+            step: 1
+            on_value: root._canvas.line_width = self.value
     GridLayout:
         cols: 2
         Button:
