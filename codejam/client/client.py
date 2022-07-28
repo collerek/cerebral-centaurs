@@ -8,10 +8,7 @@ from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.screenmanager import ScreenManager
 
-import codejam.client.widgets.chatwindow  # noqa: F401
-import codejam.client.widgets.drawcanvas  # noqa: F401
-import codejam.client.widgets.whiteboard  # noqa: F401
-import codejam.client.widgets.whiteboardscreen  # noqa: F401
+from codejam.client.widgets import *  # noqa: F401 F403
 
 
 class RootWidget(ScreenManager):
