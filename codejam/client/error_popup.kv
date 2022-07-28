@@ -35,38 +35,40 @@ RootWidget:
             multiline: False
             on_text_validate:
                 root.username = self.text
-        Button:
-            font_size: self.width / 10
-            pos: root.width / 2, 0
-            size_hint: .5, .6
-            text: "join room"
-            on_release: root.current = 'join'
-        Button:
-            font_size: self.width / 10
-            pos: 0, 0
-            size_hint: .5, .6
-            text: "create room"
-            on_release:
-                root.create_room = True
-                root.current = 'whiteboard'
-                root.create_room = False
-    JoinScreen:
-        name: 'join'
         TextInput:
             font_size: self.height * 0.6
-            pos_hint: {"x": .25, "y": .8}
+            pos_hint: {"x": .25, "y": .7}
             size_hint: .5, .1
             hint_text: 'entry code'
             multiline: False
             on_text_validate:
                 root.game_id = self.text
-        Button:
-            font_size: self.width / 10
-            pos: root.width / 4, root.width / 8
-            size_hint: .5, .4
+        GameButton:
+            canvas.before:
+                Color:
+                    rgba: .2, .5, .9, 1
+                Line:
+                    width: 5
+                    rectangle: self.x, self.y, self.width, self.height
+            color: 0.2, 0.5, 0.9, 1
+            pos: root.width * 0.55, root.height * 0.05
             text: "join room"
             on_release:
                 root.current = 'whiteboard'
+        GameButton:
+            canvas.before:
+                Color:
+                    rgba: .5, .2, .9, 1
+                Line:
+                    width: 5
+                    rectangle: self.x, self.y, self.width, self.height
+            color: 0.5, 0.2, 0.9, 1
+            pos: root.width * 0.05, root.height * 0.05
+            size_hint: .4, .5
+            text: "create room"
+            on_release:
+                root.create_room = True
+                root.current = 'whiteboard'
+
     WhiteBoardScreen:
         name: 'whiteboard'
-
