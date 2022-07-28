@@ -25,11 +25,9 @@ class Chat(FloatLayout):
 class ChatWindow(BoxLayout):
     """ChatWindow rule"""
 
-    def add_message(self, message: str) -> None:
+    def add_message(self, message: str, sender: str = None) -> None:
         """Add message to chat window."""
-        self.ids.chat_scroll.ids.chat_box.add_widget(
-            Chat(message=message, sender=root_widget.username)
-        )
+        self.ids.chat_box.add_widget(Chat(message=message, sender=sender or root_widget.username))
         self.send_message(message)
 
     def send_message(self, message: str) -> None:
