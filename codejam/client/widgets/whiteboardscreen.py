@@ -3,6 +3,10 @@ import asyncio
 import websockets
 from kivy.uix.screenmanager import Screen
 
+from codejam.server.interfaces.game_message import GameMessage
+from codejam.server.interfaces.message import Message
+from codejam.server.interfaces.topics import GameOperations, Topic, TopicEnum
+
 
 class WhiteBoardScreen(Screen):
     """WhiteBoardScreen"""
@@ -11,6 +15,22 @@ class WhiteBoardScreen(Screen):
         """Called when the screen is about to be shown."""
         if not self.manager.ws:
             self.manager.ws = asyncio.create_task(self.run_websocket())
+        if self.manager.create_room:
+            """Create new room"""
+            self.manager.current_screen.wb.message = Message(
+                topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
+                username=self.manager.username,
+                game_id=None,
+                value=GameMessage(success=False, game_id=self.manager.game_id),
+            ).json(models_as_dict=True)
+        else:
+            """Join existing room"""
+            self.manager.current_screen.wb.message = Message(
+                topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
+                username=self.manager.username,
+                game_id=self.manager.game_id,
+                value=GameMessage(success=False, game_id=self.manager.game_id),
+            ).json(models_as_dict=True)
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
@@ -37,3 +57,15 @@ class WhiteBoardScreen(Screen):
                     print("Loop finished")
         except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
             print("Connection refused", e)
+
+
+class JoinScreen(Screen):
+    """Join screen."""
+
+    pass
+
+
+class MenuScreen(Screen):
+    """Menu screen"""
+
+    pass

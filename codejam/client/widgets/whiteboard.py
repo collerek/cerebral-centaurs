@@ -14,6 +14,7 @@ from codejam.server.interfaces.topics import (
     ChatOperations,
     DrawOperations,
     ErrorOperations,
+    GameOperations,
     TopicEnum,
 )
 
@@ -34,7 +35,9 @@ class WhiteBoard(BoxLayout):
             DrawOperations.RECT.value: self.draw_rectangle,
             DrawOperations.FRAME.value: self.draw_line,
         }
-        self.game_callbacks: dict[str, Callable[[Message], None]] = {}
+        self.game_callbacks: dict[str, Callable[[Message], None]] = {
+            GameOperations.CREATE.value: self.game_created
+        }
         self.chat_callbacks: dict[str, Callable[[Message], None]] = {
             ChatOperations.SAY.value: self.chat_say
         }
@@ -56,9 +59,14 @@ class WhiteBoard(BoxLayout):
         callback = self.callbacks[cast(str, parsed.topic.type)][parsed.topic.operation]
         callback(parsed)
 
+    def game_created(self, message: Message):
+        """Handle game creation event."""
+        self.parent.parent.game_id = message.value.game_id
+
     def chat_say(self, message: Message) -> None:
         """Chat message from other clients"""
-        self.parent.ids.chat_window.add_message(**message.value.dict())
+        if message.value.sender != self.parent.username:
+            self.parent.ids.chat_window.add_message(**message.value.dict(), propagate=False)
 
     def draw_line(self, message: Message) -> None:
         """Draw lines from other clients"""
