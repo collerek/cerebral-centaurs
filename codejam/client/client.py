@@ -33,6 +33,4 @@ if __name__ == "__main__":  # pragma: no cover
         if root.ws:
             root.ws.cancel()
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_app(root_widget))
-    loop.close()
+    asyncio.run(run_app(root_widget))
