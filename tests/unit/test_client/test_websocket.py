@@ -19,6 +19,11 @@ class Empty:
     ...
 
 
+class ManagerMock():
+    def __init__(self):
+        self.username = "test"
+
+
 class WebsocketMock:
     def __init__(self):
         self.sleep = False
@@ -79,7 +84,7 @@ async def test_websockets(
     if attributes:
         for key, value in attributes.items():
             setattr(mocked_websockets, key, value)
-    screen = WhiteBoardScreen()
+    screen = WhiteBoardScreen(manager=ManagerMock())
     message = "test message"
     screen.wb = mocker.Mock()
     screen.manager = mocker.Mock(username=root_widget.username)
