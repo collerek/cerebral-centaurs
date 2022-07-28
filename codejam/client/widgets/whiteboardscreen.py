@@ -17,29 +17,30 @@ class WhiteBoardScreen(Screen):
             self.manager.ws = asyncio.create_task(self.run_websocket())
         if self.manager.create_room:
             """Create new room"""
-            self.wb.message = Message(
-                topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
-                username=self.manager.username,
-                game_id=self.manager.game_id,
-                value=GameMessage(success=False, game_id=self.manager.game_id),
-            ).json(models_as_dict=True)
+            self.wb.message = self._prepare_message(operation=GameOperations.CREATE).json(
+                models_as_dict=True
+            )
         else:
             """Join existing room"""
-            self.wb.message = Message(
-                topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
-                username=self.manager.username,
-                game_id=self.manager.game_id,
-                value=GameMessage(success=False, game_id=self.manager.game_id),
-            ).json(models_as_dict=True)
+            self.wb.message = self._prepare_message(operation=GameOperations.JOIN).json(
+                models_as_dict=True
+            )
 
     def start_game(self) -> None:
         """Start game"""
-        message = Message(
-            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.START),
+        self.wb.message = self._prepare_message(operation=GameOperations.START).json(
+            models_as_dict=True
+        )
+
+    def _prepare_message(self, operation: GameOperations, include_game_id: bool = True):
+        """Helper to create proper messages."""
+        game_id = self.manager.game_id if include_game_id else None
+        return Message(
+            topic=Topic(type=TopicEnum.GAME, operation=operation),
             username=self.manager.username,
-            game_id=self.manager.game_id,
-        ).json(models_as_dict=True)
-        self.wb.message = message
+            game_id=game_id,
+            value=GameMessage(success=False, game_id=game_id),
+        )
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""

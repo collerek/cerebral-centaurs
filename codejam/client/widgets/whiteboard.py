@@ -81,12 +81,14 @@ class WhiteBoard(BoxLayout):
 
     def game_create(self, message: Message) -> None:
         """Create game message from other clients"""
+        self.parent.game_id = message.value.game_id
 
     def game_join(self, message: Message) -> None:
         """Join game message from other clients"""
 
     def game_start(self, message: Message) -> None:
         """Start game message from other clients"""
+        self.parent.game_active = True
 
     @staticmethod
     def display_error(message: Message) -> None:
