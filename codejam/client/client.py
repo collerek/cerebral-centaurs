@@ -20,9 +20,7 @@ class RootWidget(ScreenManager):
 
 
 root_path = pathlib.Path(__file__).parent.resolve()
-
 main_full_path = root_path.joinpath("rootwidget.kv")
-
 root_widget = Builder.load_file(f"{main_full_path}")
 
 

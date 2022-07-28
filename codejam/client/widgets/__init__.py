@@ -1,1 +1,1 @@
-__all__ = ["chatwindow", "drawcanvas", "whiteboard", "whiteboardscreen"]
+__all__ = ["chatwindow", "drawcanvas", "whiteboard", "whiteboardscreen", "scoreboard"]

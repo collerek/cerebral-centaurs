@@ -11,6 +11,10 @@ class WhiteBoardScreen(Screen):
         """Called when the screen is about to be shown."""
         if not self.manager.ws:
             self.manager.ws = asyncio.create_task(self.run_websocket())
+        print(self.manager.ids.whiteboard.ids.score_board)
+        self.manager.ids.whiteboard.ids.score_board.upsert_score(
+            player=self.manager.username, score=0
+        )
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
