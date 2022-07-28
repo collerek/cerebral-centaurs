@@ -14,6 +14,7 @@ from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
@@ -21,7 +22,13 @@ from kivy.uix.widget import Widget
 from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
-from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, Topic, TopicEnum, GameOperations
+from codejam.server.interfaces.topics import (
+    DrawOperations,
+    ErrorOperations,
+    GameOperations,
+    Topic,
+    TopicEnum,
+)
 
 root_path = pathlib.Path(__file__).parent.resolve()
 full_path = root_path.joinpath("whiteboards.kv")
@@ -178,11 +185,19 @@ class TestCanvas(Widget):
         )
 
 
-class JoinScreen(Screen):
-    pass
+class GameButton(Button):
+    """Button in game menu"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.size_hint = [0.4, 0.5]
+        self.background_color = [0, 0, 0, 1]
+        self.font_size = self.width / 3
 
 
 class MenuScreen(Screen):
+    """MenuScreen"""
+
     pass
 
 
@@ -202,7 +217,10 @@ class WhiteBoard(BoxLayout):
             DrawOperations.RECT.value: self.draw_rectangle,
             DrawOperations.FRAME.value: self.draw_line,
         }
-        self.game_callbacks: Dict[str, Callable[[Message], None]] = {}
+        self.game_callbacks: Dict[str, Callable[[Message], None]] = {
+            GameOperations.CREATE.value: self.game,
+            GameOperations.JOIN.value: self.game,
+        }
         self.chat_callbacks: Dict[str, Callable[[Message], None]] = {}
         self.error_callbacks: Dict[str, Callable[[Message], None]] = {
             ErrorOperations.BROADCAST.value: self.display_error
@@ -221,6 +239,10 @@ class WhiteBoard(BoxLayout):
         parsed = Message(**json.loads(value))
         callback = self.callbacks[cast(str, parsed.topic.type)][parsed.topic.operation]
         callback(parsed)
+
+    def game(self, message: Message):
+        """Message handling for game"""
+        pass
 
     def draw_line(self, message: Message) -> None:
         """Draw lines from other clients"""
@@ -260,10 +282,7 @@ class WhiteBoardScreen(Screen):
                 topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
                 username=self.manager.username,
                 game_id=self.manager.game_id,
-                value=GameMessage(
-                    success=False,
-                    game_id=self.manager.game_id
-                )
+                value=GameMessage(success=False, game_id=self.manager.game_id),
             ).json(models_as_dict=True)
         else:
             """Join existing room"""
@@ -271,10 +290,7 @@ class WhiteBoardScreen(Screen):
                 topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
                 username=self.manager.username,
                 game_id=self.manager.game_id,
-                value=GameMessage(
-                    success=False,
-                    game_id=self.manager.game_id
-                )
+                value=GameMessage(success=False, game_id=self.manager.game_id),
             ).json(models_as_dict=True)
 
     async def run_websocket(self) -> None:
@@ -326,6 +342,7 @@ class CanvasTools(BoxLayout):
 
 class RootWidget(ScreenManager):
     """Root widget"""
+
     create_room = ObjectProperty(False)
 
     username = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
