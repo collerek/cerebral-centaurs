@@ -7,6 +7,7 @@ from kivy.app import async_runTouchApp
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager
 
 from codejam.client.widgets.drawcanvas import DrawCanvas  # noqa: F401
@@ -14,11 +15,11 @@ from codejam.client.widgets.whiteboard import WhiteBoard  # noqa: F401
 from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen  # noqa: F401
 
 
-class Chat(BoxLayout):
+class Chat(FloatLayout):
     """Chat rule"""
 
     message = StringProperty("")
-    username = StringProperty("")
+    sender = StringProperty("")
 
 
 class ChatWindow(BoxLayout):
@@ -27,7 +28,7 @@ class ChatWindow(BoxLayout):
     def add_message(self, message: str) -> None:
         """Add message to chat window."""
         self.ids.chat_scroll.ids.chat_box.add_widget(
-            Chat(message=message, username=root_widget.username)
+            Chat(message=message, sender=root_widget.username)
         )
         self.send_message(message)
 
