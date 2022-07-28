@@ -1,0 +1,57 @@
+<Chat>:
+    sender: ''
+    message: ''
+    size_hint_y: None
+    BoxLayout:
+        pos_hint: {'top': 1, 'left': 0 if root.parent and root.parent.username == root.sender else .25}
+        size_hint_x: .75
+        canvas.before:
+            Color:
+                rgb: (0.5, 0.2, 0.9) if root.parent and root.parent.username == root.sender else (0.2, 0.5, 0.9)
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+        orientation: 'vertical'
+        Label:
+            font_size: sp(10)
+            text: root.sender
+            text_size: self.width - dp(10), None
+            halign: 'left'
+        Label:
+            font_size: sp(15)
+            text: root.message
+            text_size: self.width - dp(10), None
+            halign: 'right'
+
+
+<ChatWindow>:
+    username: ''
+    spacing: dp(10)
+    orientation: 'vertical'
+    ScrollView:
+        id: chat_scroll
+        size_hint_y: .7
+        GridLayout:
+            username: root.username
+            cols: 1
+            id: chat_box
+            size_hint_y: None
+            height: self.minimum_height
+            spacing: '10dp'
+            padding: '10dp'
+
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: .3
+        TextInput:
+            id: message_input
+            hint_text: 'Enter your message'
+            text: ''
+        Button:
+            text: 'Send'
+            on_release:
+                root.add_message(message_input.text)
+                chat_scroll.scroll_y = 0
+                message_input.text = ''
