@@ -1,3 +1,4 @@
+import asyncio
 from functools import cached_property
 from typing import Any, Callable, Coroutine, Dict
 
@@ -27,10 +28,13 @@ class ChatController(BaseController):
         user = self.manager.get_user(message.username)
         game = self.manager.get_game(game_id=message.game_id)
         current_turn = game.current_turn
+        if current_turn:
+            print("pass", current_turn.phrase.lower())
+            print("message", message.value.message.lower())
         if (
             current_turn
             and current_turn.phrase.lower() == message.value.message.lower()
-            and current_turn.drawer.username != message.username
+            and current_turn.drawer.username != message.value.sender
         ):
             game.win(user)
             won_message = Message(
@@ -55,6 +59,7 @@ class ChatController(BaseController):
                 game_id=won_message.game_id,
                 message=won_message,
             )
+            await asyncio.sleep(5)
             game_controller = GameController(manager=self.manager)
             await game_controller.execute_turn(game=game, user=user)
 
@@ -64,7 +69,10 @@ class ChatController(BaseController):
         game = self.manager.get_game(game_id=message.game_id)
         if game.current_turn and game.current_turn.drawer.username == user.username:
             tokens = [x.lower() for x in game.current_turn.phrase.split()]
-            censored = [x for x in message.value.message.split(" ") if x.lower() not in tokens]
+            censored = [
+                x if x.lower() not in tokens else "<CENSORED>"
+                for x in message.value.message.split(" ")
+            ]
             message.value.message = " ".join(censored)
         return message
 

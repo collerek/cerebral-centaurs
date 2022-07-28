@@ -22,6 +22,8 @@ class WhiteBoardScreen(Screen):
             )
         else:
             """Join existing room"""
+            if "lobby" in self.manager.ids:
+                self.remove_widget(self.manager.ids.lobby)
             self.wb.message = self._prepare_message(operation=GameOperations.JOIN).json(
                 models_as_dict=True
             )
@@ -31,6 +33,7 @@ class WhiteBoardScreen(Screen):
         self.wb.message = self._prepare_message(operation=GameOperations.START).json(
             models_as_dict=True
         )
+        self.remove_widget(self.manager.ids.lobby)
 
     def _prepare_message(self, operation: GameOperations, include_game_id: bool = True):
         """Helper to create proper messages."""
@@ -65,5 +68,6 @@ class WhiteBoardScreen(Screen):
                     print("Loop canceled", e)
                 finally:
                     print("Loop finished")
+                    self.manager.current = "menu_screen"
         except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
             print("Connection refused", e)

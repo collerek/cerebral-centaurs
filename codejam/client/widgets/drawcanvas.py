@@ -47,10 +47,11 @@ class DrawCanvas(Widget):
 
     def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
-        if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
-            with self.canvas:
-                Color(*self.colour, mode="hsv")
-                self.drawables.get(self.tool)(touch)
+        if self.parent.parent.parent.parent.can_draw:
+            if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
+                with self.canvas:
+                    Color(*self.colour, mode="hsv")
+                    self.drawables.get(self.tool)(touch)
 
     def select_operator(
         self, touch_data: Dict
