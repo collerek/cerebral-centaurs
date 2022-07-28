@@ -16,9 +16,11 @@ from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.modalview import ModalView
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
 
+from codejam.client.widgets import *  # noqa: F401 F403
 from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
@@ -220,6 +222,7 @@ class WhiteBoard(BoxLayout):
         self.game_callbacks: Dict[str, Callable[[Message], None]] = {
             GameOperations.CREATE.value: self.game,
             GameOperations.JOIN.value: self.game,
+            GameOperations.START.value: self.game,
         }
         self.chat_callbacks: Dict[str, Callable[[Message], None]] = {}
         self.error_callbacks: Dict[str, Callable[[Message], None]] = {
@@ -320,7 +323,54 @@ class WhiteBoardScreen(Screen):
             print("Connection refused", e)
 
 
-from codejam.client.widgets import *  # noqa: F401 F403
+class LobbyButton(Button):
+    """Button for lobby"""
+
+    def __init__(self, **kwargs):
+        """Init button"""
+        super().__init__(**kwargs)
+        self.text = "Start game"
+        self.pos_hint = {"x": 0.3, "y": 0.4}
+        self.size_hint = [0.4, 0.2]
+
+    def on_release(self):
+        """Start game"""
+        root_widget.current_screen.wb.message = Message(
+            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.START),
+            username=root_widget.current_screen.manager.username,
+            game_id=root_widget.current_screen.manager.game_id,
+        ).json(models_as_dict=True)
+        self.disabled = True
+        self.opacity = 0
+
+
+class Lobby(RelativeLayout):
+    """Lobby"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        lobby = LobbyButton()
+        self.add_widget(lobby)
+
+
+class ErrorPopup(ModalView):
+    """ErrorPopup"""
+
+    title = StringProperty("")
+    message = StringProperty("")
+    error_code = StringProperty("")
+
+
+class Instructions(BoxLayout):
+    """Instructions rule"""
+
+    _canvas = ObjectProperty(None)
+
+
+class CanvasTools(BoxLayout):
+    """CanvasTools rule"""
+
+    ...
 
 
 class RootWidget(ScreenManager):
