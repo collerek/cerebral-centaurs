@@ -1,6 +1,6 @@
 import json
 import pathlib
-from typing import Callable, cast
+from typing import Callable, Dict, cast
 
 from kivy.graphics import Color, Line, Rectangle
 from kivy.lang import Builder
@@ -14,6 +14,7 @@ from codejam.server.interfaces.topics import (
     ChatOperations,
     DrawOperations,
     ErrorOperations,
+    GameOperations,
     TopicEnum,
 )
 
@@ -29,20 +30,24 @@ class WhiteBoard(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # TODO: refactor
-        self.draw_callbacks: dict[str, Callable[[Message], None]] = {
+        self.draw_callbacks: Dict[str, Callable[[Message], None]] = {
             DrawOperations.LINE.value: self.draw_line,
             DrawOperations.RECT.value: self.draw_rectangle,
             DrawOperations.FRAME.value: self.draw_line,
         }
-        self.game_callbacks: dict[str, Callable[[Message], None]] = {}
-        self.chat_callbacks: dict[str, Callable[[Message], None]] = {
+        self.game_callbacks: Dict[str, Callable[[Message], None]] = {
+            GameOperations.CREATE.value: self.game_create,
+            GameOperations.JOIN.value: self.game_join,
+            GameOperations.START.value: self.game_start,
+        }
+        self.chat_callbacks: Dict[str, Callable[[Message], None]] = {
             ChatOperations.SAY.value: self.chat_say
         }
-        self.error_callbacks: dict[str, Callable[[Message], None]] = {
+        self.error_callbacks: Dict[str, Callable[[Message], None]] = {
             ErrorOperations.BROADCAST.value: self.display_error
         }
 
-        self.callbacks: dict[str, dict] = {
+        self.callbacks: Dict[str, Dict] = {
             TopicEnum.DRAW.value: self.draw_callbacks,
             TopicEnum.GAME.value: self.game_callbacks,
             TopicEnum.CHAT.value: self.chat_callbacks,
@@ -73,6 +78,15 @@ class WhiteBoard(BoxLayout):
             Color(hsv=message.value.data.colour)
             rect = Rectangle(pos=message.value.data.pos, size=message.value.data.size)
             self.ids[message.value.draw_id] = rect
+
+    def game_create(self, message: Message) -> None:
+        """Create game message from other clients"""
+
+    def game_join(self, message: Message) -> None:
+        """Join game message from other clients"""
+
+    def game_start(self, message: Message) -> None:
+        """Start game message from other clients"""
 
     @staticmethod
     def display_error(message: Message) -> None:
