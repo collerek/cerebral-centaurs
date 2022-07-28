@@ -11,7 +11,7 @@ URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 @pytest.fixture()
 def mocked_websockets(mocker):
     web_socket_mock = WebsocketMock()
-    mocker.patch("codejam.client.client.websockets", web_socket_mock)
+    mocker.patch("codejam.client.widgets.whiteboardscreen.websockets", web_socket_mock)
     return web_socket_mock
 
 

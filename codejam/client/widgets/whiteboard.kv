@@ -27,8 +27,9 @@
                 Rectangle:
                     pos: self.pos
                     size: self.size
-            TestCanvas:
+            DrawCanvas:
                 root: wb
+                wbs: root
                 pos_hint: {'center_x': .5, 'center_y': .5}
                 offset_x: 0
                 offset_y: 0
@@ -159,3 +160,29 @@
             root._canvas.line_width = 10
             root._canvas.tool = 'line'
             root._canvas.colour = root._canvas.draw_mark
+
+<ErrorPopup@ModalView>:
+    auto_dismiss: False
+    size_hint: 0.6, 0.2
+    pos_hint: {"x": 0.2 ,"top": 0.9}
+    title: "Error Title"
+    error_code: "Error Code"
+    message: "Error Message"
+    BoxLayout:
+        size_hint: None, None
+        orientation: "vertical"
+        Label:
+            text: "Error encountered!"
+        Widget:
+        Label:
+            text: root.title
+            halign: "left"
+        Label:
+            text: root.error_code
+            halign: "left"
+        Label:
+            text: root.message
+            halign: "left"
+        Button:
+            text: "Close"
+            on_release: root.dismiss()
