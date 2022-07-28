@@ -73,7 +73,6 @@
                 size_hint: .05,.05
                 on_release: chat_window.hidden = not chat_window.hidden
 
-
 <CanvasTools>:
     padding: dp(10)
     spacing: dp(10)
@@ -122,8 +121,6 @@
         text: '->' if root.x else '<-'
         on_release:
             root.x = -self.x
-
-
 
 <Instructions>:
     orientation: 'vertical'
