@@ -6,8 +6,8 @@ from typing import Dict, List, Optional
 
 from codejam.server.exceptions import NotEnoughPlayers
 from codejam.server.interfaces.message import Message
-from codejam.server.interfaces.topics import GameLevel, TopicEnum
-from codejam.server.models.phrase_generator import PhraseGenerator
+from codejam.server.interfaces.topics import TopicEnum
+from codejam.server.models.phrase_generator import PhraseDifficulty, PhraseGenerator
 from codejam.server.models.user import User
 
 
@@ -19,7 +19,7 @@ class Turn:
         turn_no: int,
         drawer: User,
         duration: int,
-        level: GameLevel = GameLevel.EASY,
+        level: PhraseDifficulty = PhraseDifficulty.MEDIUM,
     ):
         self.turn_no = turn_no
         self.level = level
@@ -38,7 +38,11 @@ class Game:
     """Represents a game instance between players."""
 
     def __init__(self, creator: User) -> None:
-        self.winner_scores = {GameLevel.EASY: 50, GameLevel.HARD: 100}
+        self.winner_scores = {
+            PhraseDifficulty.EASY: 50,
+            PhraseDifficulty.MEDIUM: 100,
+            PhraseDifficulty.HARD: 50,
+        }
         self.allowed_durations = [30, 60]
         self.creator = creator
         self.members: List[User] = []

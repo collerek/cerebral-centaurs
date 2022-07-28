@@ -1,4 +1,3 @@
-import os
 import pathlib
 import random
 from enum import Enum
@@ -8,17 +7,17 @@ from typing import Optional
 class PhraseCategory(Enum):
     """Represents a category of phrases."""
 
-    objects = 1
-    persons = 2
-    verbs = 3
+    OBJECTS = "OBJECTS"
+    PERSONS = "PERSONS"
+    VERBS = "VERBS"
 
 
 class PhraseDifficulty(Enum):
     """Represents difficulty of a phrase."""
 
-    easy = 1
-    medium = 2
-    hard = 3
+    EASY = "EASY"
+    MEDIUM = "MEDIUM"
+    HARD = "HARD"
 
 
 class PhraseGenerator:
@@ -27,7 +26,7 @@ class PhraseGenerator:
     @classmethod
     def generate_phrase(
         cls,
-        difficulty: PhraseDifficulty = PhraseDifficulty.medium,
+        difficulty: PhraseDifficulty = PhraseDifficulty.MEDIUM,
         category: Optional[PhraseCategory] = None,
     ) -> str:
         """
@@ -40,39 +39,32 @@ class PhraseGenerator:
         """
         if category is not None:
             match category:
-                case PhraseCategory.objects:
+                case PhraseCategory.OBJECTS:
                     return cls.get_random_phrase("objects")
-                case PhraseCategory.persons:
+                case PhraseCategory.PERSONS:
                     return cls.get_random_phrase("persons")
-                case PhraseCategory.verbs:
+                case PhraseCategory.VERBS:
                     return cls.get_random_phrase("verbs")
         match difficulty:
-            case PhraseDifficulty.easy:
+            case PhraseDifficulty.EASY:
                 return cls.get_random_phrase("easy")
-            case PhraseDifficulty.medium:
+            case PhraseDifficulty.MEDIUM:
                 return cls.get_random_phrase("medium")
-            case PhraseDifficulty.hard:
+            case PhraseDifficulty.HARD:
                 return cls.get_random_phrase("hard")
         raise ValueError("Invalid difficulty or category")
 
     @classmethod
     def read_phrase_file(cls, filename: str) -> list[str]:
         """Reads phrase from file."""
-        # Remove .txt extension from filename if provided
         filename.rstrip(".txt")
-
-        top_dir = ""
-        for parent in pathlib.Path.cwd().parents:
-            if str(parent).endswith("cerebral-centaurs"):
-                top_dir = str(parent)
-                break
-
-        relative_path = f"codejam/server/data/phrases/{filename}.txt"
-        file_path = os.path.join(top_dir, relative_path)
+        server_path = pathlib.Path(__file__).parent.parent.resolve()
+        data_folder = server_path.joinpath("data").joinpath("phrases")
+        file_path = data_folder.joinpath(f"{filename}.txt").resolve()
         with open(file_path, "r") as f:
-            return f.readlines()
+            return [x.strip() for x in f.readlines()]
 
     @classmethod
     def get_random_phrase(cls, filename: str) -> str:
         """Returns random phrase."""
-        return random.choice(cls.read_phrase_file(filename)).strip()
+        return random.choice(cls.read_phrase_file(filename))
