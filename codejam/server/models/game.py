@@ -33,12 +33,17 @@ class Turn:
 class Game:
     """Represents a game instance between players."""
 
+<<<<<<< HEAD
     def __init__(self, creator: User, game_id: str = None, difficulty: str = None) -> None:
         self.winner_scores = {
             PhraseDifficulty.EASY: 50,
             PhraseDifficulty.MEDIUM: 100,
             PhraseDifficulty.HARD: 50,
         }
+=======
+    def __init__(self, creator: User, game_id: str = None) -> None:
+        self.winner_scores = {GameLevel.EASY: 50, GameLevel.HARD: 100}
+>>>>>>> deee655 (basic scoreboard)
         self.allowed_durations = [30, 60]
         self.creator = creator
         self.members: List[User] = []

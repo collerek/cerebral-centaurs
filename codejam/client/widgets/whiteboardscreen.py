@@ -52,6 +52,10 @@ class WhiteBoardScreen(Screen):
             websocket_task = asyncio.create_task(self.run_websocket())
             websocket_task.add_done_callback(self.task_callback)
             self.manager.ws = websocket_task
+            print(self.manager.ids.whiteboard.ids.score_board)
+            self.manager.ids.whiteboard.ids.score_board.upsert_score(
+                player=self.manager.username, score=0
+            )
         if self.manager.create_room:
             try:
                 lobby = self.manager.ids.lobby

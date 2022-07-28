@@ -74,13 +74,19 @@
                 wb: wb
                 wbs: root
                 hidden: False
-                pos_hint: {'right':.98, 'top':.95} if not self.hidden else {'x': 1}
-                size_hint: .2, .9
+                pos_hint: {'right':.98, 'top':.8} if not self.hidden else {'x': 1}
+                size_hint: .2, .7
             Button:
                 text: 'show' if chat_window.hidden else 'hide'
                 pos_hint: {'right':.98, 'y': 0}
                 size_hint: .05,.05
                 on_release: chat_window.hidden = not chat_window.hidden
+            ScoreBoard:
+                id: score_board
+                game_id: root.manager.game_id
+                wbs: root
+                pos_hint: {'right':.98, 'top':1.1}
+                size_hint: .2, .3
 
 <CanvasTools>:
     padding: dp(10)
