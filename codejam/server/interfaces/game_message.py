@@ -2,7 +2,7 @@ from typing import Dict, Optional
 
 from pydantic import BaseModel
 
-from codejam.server.interfaces.topics import GameLevel
+from codejam.server.models.phrase_generator import PhraseDifficulty
 
 
 class TurnMessage(BaseModel):
@@ -13,7 +13,7 @@ class TurnMessage(BaseModel):
 
     turn_no: int
     active: bool = True
-    level: GameLevel
+    level: PhraseDifficulty
     drawer: Optional[str]
     duration: int
     phrase: str

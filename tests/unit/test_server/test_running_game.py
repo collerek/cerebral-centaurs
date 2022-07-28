@@ -33,6 +33,10 @@ def test_winning_game(
         "codejam.server.controllers.game_controller.delay_wrapper",
         dumy_delay_wrapper
     )
+    mocker.patch(
+        "codejam.server.models.game.Turn.generate_phrase",
+        mocker.MagicMock(return_value="Dummy Phrase of level EASY")
+    )
 
     client = TestClient(app)
     with client.websocket_connect(f"/ws/{test_client}") as websocket:
@@ -146,6 +150,10 @@ def test_running_game(
     mocker.patch(
         "codejam.server.controllers.game_controller.delay_wrapper",
         dumy_delay_wrapper
+    )
+    mocker.patch(
+        "codejam.server.models.game.Turn.generate_phrase",
+        mocker.MagicMock(return_value="Dummy Phrase of level EASY")
     )
 
     client = TestClient(app)
