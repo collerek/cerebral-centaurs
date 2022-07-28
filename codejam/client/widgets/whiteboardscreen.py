@@ -17,7 +17,7 @@ class WhiteBoardScreen(Screen):
             self.manager.ws = asyncio.create_task(self.run_websocket())
         if self.manager.create_room:
             """Create new room"""
-            self.manager.current_screen.wb.message = Message(
+            self.manager.ids.whiteboard.wb.message = Message(
                 topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
                 username=self.manager.username,
                 game_id=None,
@@ -25,7 +25,7 @@ class WhiteBoardScreen(Screen):
             ).json(models_as_dict=True)
         else:
             """Join existing room"""
-            self.manager.current_screen.wb.message = Message(
+            self.manager.ids.whiteboard.wb.message = Message(
                 topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
                 username=self.manager.username,
                 game_id=self.manager.game_id,

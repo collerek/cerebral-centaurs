@@ -65,7 +65,7 @@ class WhiteBoard(BoxLayout):
 
     def chat_say(self, message: Message) -> None:
         """Chat message from other clients"""
-        if message.value.sender != self.parent.username:
+        if message.value.sender != self.parent.parent.username:
             self.parent.ids.chat_window.add_message(**message.value.dict(), propagate=False)
 
     def draw_line(self, message: Message) -> None:

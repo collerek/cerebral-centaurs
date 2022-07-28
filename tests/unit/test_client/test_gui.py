@@ -276,6 +276,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         incoming_message = self.test_message.copy(deep=True)
         incoming_message.username = "New user"
         incoming_message.value.message = "Websocket message"
+        incoming_message.value.sender = "New user"
         wb_screen.wb.received = incoming_message.json()
         assert json.loads(wb_screen.wb.btn_text) == incoming_message.dict()
 
