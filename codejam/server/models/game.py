@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 from codejam.server.exceptions import NotEnoughPlayers
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import GameLevel, TopicEnum
+from codejam.server.models.phrase_generator import PhraseGenerator
 from codejam.server.models.user import User
 
 
@@ -27,9 +28,10 @@ class Turn:
         self.phrase = self.generate_phrase()
         self.winner: Optional[User] = None
 
-    def generate_phrase(self):
+    @staticmethod
+    def generate_phrase(*args, **kwargs) -> str:
         """Generates next phrase to guess"""
-        return f"Dummy Phrase of level {self.level.value}"
+        return PhraseGenerator.generate_phrase(*args, **kwargs)
 
 
 class Game:
