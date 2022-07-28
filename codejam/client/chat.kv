@@ -23,25 +23,24 @@
             text_size: self.width - dp(10), None
             halign: 'right'
 
-<ChatScroll@ScrollView>:
-    username: ''
-    GridLayout:
-        username: root.username
-        cols: 1
-        id: chat_box
-        size_hint_y: None
-        height: self.minimum_height
-        spacing: '10dp'
-        padding: '10dp'
 
 <ChatWindow>:
     username: ''
     spacing: dp(10)
     orientation: 'vertical'
-    ChatScroll:
+    ScrollView:
         id: chat_scroll
         size_hint_y: .7
-        username: root.username
+        GridLayout:
+            username: root.username
+            cols: 1
+            id: chat_box
+            size_hint_y: None
+            height: self.minimum_height
+            spacing: '10dp'
+            padding: '10dp'
+
+
 
     BoxLayout:
         orientation: 'vertical'

@@ -240,9 +240,7 @@ class WhiteBoard(BoxLayout):
 
     def chat_say(self, message: Message) -> None:
         """Chat message from other clients"""
-        self.ids.chat_window.ids.chat_scroll.ids.chat_box.add_widget(
-            Chat(message=message.value.message, sender=message.value.sender)
-        )
+        self.ids.chat_window.add_message(**message.value.dict())
 
     @staticmethod
     def display_error(message: Message) -> None:
@@ -320,11 +318,9 @@ class Chat(FloatLayout):
 class ChatWindow(BoxLayout):
     """ChatWindow rule"""
 
-    def add_message(self, message: str) -> None:
+    def add_message(self, message: str, sender: str = None) -> None:
         """Add message to chat window."""
-        self.ids.chat_scroll.ids.chat_box.add_widget(
-            Chat(message=message, sender=root_widget.username)
-        )
+        self.ids.chat_box.add_widget(Chat(message=message, sender=sender or root_widget.username))
         self.send_message(message)
 
     def send_message(self, message: str) -> None:
