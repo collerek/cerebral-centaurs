@@ -14,6 +14,7 @@ from kivy.input import MotionEvent
 from kivy.lang.builder import Builder
 from kivy.properties import BoundedNumericProperty, ListProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
@@ -240,7 +241,7 @@ class WhiteBoard(BoxLayout):
     def chat_say(self, message: Message) -> None:
         """Chat message from other clients"""
         self.ids.chat_window.ids.chat_scroll.ids.chat_box.add_widget(
-            Chat(message=message.value.message, username=message.value.sender)
+            Chat(message=message.value.message, sender=message.value.sender)
         )
 
     @staticmethod
@@ -309,11 +310,11 @@ class CanvasTools(BoxLayout):
     ...
 
 
-class Chat(BoxLayout):
+class Chat(FloatLayout):
     """Chat rule"""
 
     message = StringProperty("")
-    username = StringProperty("")
+    sender = StringProperty("")
 
 
 class ChatWindow(BoxLayout):
@@ -322,7 +323,7 @@ class ChatWindow(BoxLayout):
     def add_message(self, message: str) -> None:
         """Add message to chat window."""
         self.ids.chat_scroll.ids.chat_box.add_widget(
-            Chat(message=message, username=root_widget.username)
+            Chat(message=message, sender=root_widget.username)
         )
         self.send_message(message)
 
