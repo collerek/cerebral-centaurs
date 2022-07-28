@@ -3,7 +3,8 @@ from typing import Dict
 
 import pytest
 
-from codejam.client.client import root_widget, WhiteBoardScreen
+from codejam.client.client import root_widget
+from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen
 
 URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 
@@ -11,12 +12,17 @@ URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 @pytest.fixture()
 def mocked_websockets(mocker):
     web_socket_mock = WebsocketMock()
-    mocker.patch("codejam.client.client.websockets", web_socket_mock)
+    mocker.patch("codejam.client.widgets.whiteboardscreen.websockets", web_socket_mock)
     return web_socket_mock
 
 
 class Empty:
     ...
+
+
+class ManagerMock():
+    def __init__(self):
+        self.username = "test"
 
 
 class WebsocketMock:
@@ -79,7 +85,7 @@ async def test_websockets(
     if attributes:
         for key, value in attributes.items():
             setattr(mocked_websockets, key, value)
-    screen = WhiteBoardScreen()
+    screen = WhiteBoardScreen(manager=ManagerMock())
     message = "test message"
     screen.wb = mocker.Mock()
     screen.manager = mocker.Mock(username=root_widget.username)
