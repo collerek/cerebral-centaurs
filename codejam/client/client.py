@@ -29,6 +29,23 @@ class ChatWindow(BoxLayout):
         self.ids.chat_scroll.ids.chat_box.add_widget(
             Chat(message=message, username=root_widget.username)
         )
+        self.send_message(message)
+
+    def send_message(self, message: str) -> None:
+        """Send message to server."""
+        root_widget.current_screen.wb.message = self._prepare_message(message).json(
+            models_as_dict=True
+        )
+
+    @staticmethod
+    def _prepare_message(message: str) -> Message:
+        """Prepare message to send to server."""
+        return Message(
+            topic=Topic(type=TopicEnum.CHAT, operation=ChatOperations.SAY),
+            username=root_widget.username,
+            game_id=root_widget.game_id,
+            value=ChatMessage(sender=root_widget.username, message=message),
+        )
 
 
 class RootWidget(ScreenManager):
