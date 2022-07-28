@@ -3,7 +3,8 @@ from typing import Dict
 
 import pytest
 
-from codejam.client.client import root_widget, WhiteBoardScreen
+from codejam.client.client import root_widget
+from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen
 
 URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 
