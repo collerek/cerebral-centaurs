@@ -18,9 +18,16 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
 
+from codejam.server.interfaces.chat_message import ChatMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
-from codejam.server.interfaces.topics import DrawOperations, ErrorOperations, Topic, TopicEnum
+from codejam.server.interfaces.topics import (
+    ChatOperations,
+    DrawOperations,
+    ErrorOperations,
+    Topic,
+    TopicEnum,
+)
 
 root_path = pathlib.Path(__file__).parent.resolve()
 kvs = ["chat", "error_popup", "whiteboards"]
@@ -195,7 +202,9 @@ class WhiteBoard(BoxLayout):
             DrawOperations.FRAME.value: self.draw_line,
         }
         self.game_callbacks: Dict[str, Callable[[Message], None]] = {}
-        self.chat_callbacks: Dict[str, Callable[[Message], None]] = {}
+        self.chat_callbacks: Dict[str, Callable[[Message], None]] = {
+            ChatOperations.SAY.value: self.chat_say,
+        }
         self.error_callbacks: Dict[str, Callable[[Message], None]] = {
             ErrorOperations.BROADCAST.value: self.display_error
         }
@@ -227,6 +236,12 @@ class WhiteBoard(BoxLayout):
             Color(hsv=message.value.data.colour)
             rect = Rectangle(pos=message.value.data.pos, size=message.value.data.size)
             self.ids[message.value.draw_id] = rect
+
+    def chat_say(self, message: Message) -> None:
+        """Chat message from other clients"""
+        self.ids.chat_window.ids.chat_scroll.ids.chat_box.add_widget(
+            Chat(message=message.value.message, username=message.value.sender)
+        )
 
     @staticmethod
     def display_error(message: Message) -> None:
@@ -308,6 +323,23 @@ class ChatWindow(BoxLayout):
         """Add message to chat window."""
         self.ids.chat_scroll.ids.chat_box.add_widget(
             Chat(message=message, username=root_widget.username)
+        )
+        self.send_message(message)
+
+    def send_message(self, message: str) -> None:
+        """Send message to server."""
+        root_widget.current_screen.wb.message = self._prepare_message(message).json(
+            models_as_dict=True
+        )
+
+    @staticmethod
+    def _prepare_message(message: str) -> Message:
+        """Prepare message to send to server."""
+        return Message(
+            topic=Topic(type=TopicEnum.CHAT, operation=ChatOperations.SAY),
+            username=root_widget.username,
+            game_id=root_widget.game_id,
+            value=ChatMessage(sender=root_widget.username, message=message),
         )
 
 
