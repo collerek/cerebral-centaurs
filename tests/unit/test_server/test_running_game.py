@@ -6,6 +6,7 @@ from starlette.testclient import TestClient, WebSocketTestSession
 from codejam.server import app
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import GameOperations, TopicEnum
+from codejam.server.models.phrase_generator import PhraseDifficulty
 
 
 class TestUser:
@@ -167,6 +168,7 @@ def test_running_game(
     client = TestClient(app)
     with client.websocket_connect(f"/ws/{test_client}") as websocket:
         user = TestUser(test_client, websocket=websocket)
+        game_creation_message.value.difficulty = PhraseDifficulty.HARD.value
         user.websocket.send_json(game_creation_message.dict())
         game_created = Message(**user.websocket.receive_json())
         game_id = game_created.value.game_id
@@ -219,6 +221,7 @@ def test_running_game(
                         else hashed_phrase
                     )
                     assert game_joined.value.turn.turn_no == turn
+                    assert game_joined.value.turn.level == game_creation_message.value.difficulty
                     return game_joined.value.turn.drawer
 
                 test_turn(user=user, turn=1)
