@@ -2,13 +2,10 @@ import asyncio
 import json
 
 import pytest
-from kivy.base import EventLoop
 from kivy.lang import Builder
-from kivy.uix.modalview import ModalView
 
 from codejam.client.client import main_full_path
-from codejam.client.widgets.whiteboard import InfoPopup
-from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen
+from codejam.client.widgets.whiteboard_screen import WhiteBoardScreen
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import GameOperations
 
@@ -92,3 +89,12 @@ async def test_task_returns_ok_handler(mocker):
     task = mocker.AsyncMock(result=mocker.MagicMock(side_effect=[2]))
     result = root_widget.ids.wbs.task_callback(task)
     assert result == 2
+
+
+@pytest.mark.asyncio
+async def test_actual_websocket_runner():
+    root_widget = Builder.load_file(f"{main_full_path}")
+    try:
+        await asyncio.wait_for(root_widget.ids.wbs.run_websocket(), timeout=2.0)
+    except asyncio.exceptions.TimeoutError:
+        pass

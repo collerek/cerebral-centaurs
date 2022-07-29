@@ -4,7 +4,7 @@ from typing import Dict
 import pytest
 
 from codejam.client.client import root_widget
-from codejam.client.widgets.whiteboardscreen import WhiteBoardScreen
+from codejam.client.widgets.whiteboard_screen import WhiteBoardScreen
 
 URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 
@@ -12,7 +12,7 @@ URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 @pytest.fixture()
 def mocked_websockets(mocker):
     web_socket_mock = WebsocketMock()
-    mocker.patch("codejam.client.widgets.whiteboardscreen.websockets", web_socket_mock)
+    mocker.patch("codejam.client.widgets.whiteboard_screen.websockets", web_socket_mock)
     return web_socket_mock
 
 
@@ -58,8 +58,8 @@ class WebsocketMock:
     (
         ({}, "", "test message", URL),
         ({"sleep": True}, "", "test message", URL),
-        ({"cancel": True}, "", None, URL),
-        ({"refuse_connection": True}, "test message", None, ""),
+        ({"cancel": True}, "", "", URL),
+        ({"refuse_connection": True}, "test message", "", ""),
     ),
     ids=[
         "Normal execution",
@@ -82,10 +82,11 @@ async def test_websockets(
     screen = WhiteBoardScreen(manager=mocker.Mock(username=root_widget.username))
     message = "test message"
     screen.message = message
-    await screen.run_websocket()
-    if expected_received is not None:
-        assert screen.received == expected_received
+    if mocked_websockets.refuse_connection:
+        with pytest.raises(ConnectionRefusedError):
+            await screen.run_websocket()
     else:
-        assert isinstance(screen.received, mocker.Mock)
+        await screen.run_websocket()
+    assert screen.received == expected_received
     assert screen.message == expected_message
     assert mocked_websockets.url == expected_url

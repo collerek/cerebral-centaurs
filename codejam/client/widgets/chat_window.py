@@ -43,4 +43,4 @@ class ChatWindow(BoxLayout):
 
 
 root_path = pathlib.Path(__file__).parent.resolve()
-Builder.load_file(f'{root_path.joinpath("chatwindow.kv")}')
+Builder.load_file(f'{root_path.joinpath("chat_window.kv")}')

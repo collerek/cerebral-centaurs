@@ -9,8 +9,8 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import root_widget
-from codejam.client.widgets.chatwindow import Chat
-from codejam.client.widgets.drawcanvas import Tools
+from codejam.client.widgets.chat_window import Chat
+from codejam.client.widgets.draw_canvas import Tools
 from codejam.server.interfaces.chat_message import ChatMessage
 from codejam.server.interfaces.error_message import ErrorMessage
 from codejam.server.interfaces.game_message import GameMessage, TurnMessage
@@ -270,7 +270,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         assert json.loads(wb_screen.message) == {
             "topic": self.test_line.topic.dict(),
             "username": self.test_line.username,
-            "game_id": self.test_line.game_id,
+            "game_id": root_widget.game_id,
             "value": {
                 "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
                 "data": {
@@ -310,7 +310,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         assert json.loads(wb_screen.message) == {
             "topic": self.test_frame.topic.dict(),
             "username": self.test_frame.username,
-            "game_id": self.test_frame.game_id,
+            "game_id": root_widget.game_id,
             "value": {
                 "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
                 "data": {
@@ -349,7 +349,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         assert json.loads(wb_screen.message) == {
             "topic": self.test_rectangle.topic.dict(),
             "username": self.test_rectangle.username,
-            "game_id": self.test_rectangle.game_id,
+            "game_id": root_widget.game_id,
             "value": {
                 "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
                 "data": {
@@ -512,6 +512,8 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         popup.dismiss()
         self.advance_frames(1)
+        assert wb_screen.ids.counter.text != "WAITING FOR START"
+        assert int(wb_screen.ids.counter.text) <= 60
 
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
