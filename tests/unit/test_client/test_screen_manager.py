@@ -95,8 +95,5 @@ async def test_task_returns_ok_handler(mocker):
 @pytest.mark.asyncio
 async def test_actual_websocket_runner(mocked_websockets: WebsocketMock):
     root_widget = Builder.load_file(f"{main_full_path}")
-    try:
-        await asyncio.wait_for(root_widget.ids.wbs.run_websocket(), timeout=1/60)
-    except asyncio.exceptions.TimeoutError:
-        pass
+    await root_widget.ids.wbs.run_websocket()
     assert mocked_websockets.url == f"ws://127.0.0.1:8000/ws/{root_widget.username}"
