@@ -50,6 +50,7 @@ class ConnectionManager:
         self.get_game(game_id=game_id).join(new_member=new_member)
 
     def get_members(self, game_id: str) -> List[str]:
+        """Get game members"""
         return [i.username for i in self.get_game(game_id=game_id).members]
 
     async def fill_history(self, game_id: str, new_member: User):
