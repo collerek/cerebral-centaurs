@@ -1,8 +1,9 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from pydantic import BaseModel
 
 from codejam.server.models.phrase_generator import PhraseDifficulty
+from codejam.server.models.user import User
 
 
 class TurnMessage(BaseModel):
@@ -28,3 +29,4 @@ class GameMessage(BaseModel):
     game_id: str
     difficulty: Optional[str]
     turn: Optional[TurnMessage]
+    members: Optional[List[str]]

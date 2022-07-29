@@ -41,6 +41,7 @@ class WhiteBoard(BoxLayout):
             GameOperations.START.value: self.game_start,
             GameOperations.TURN.value: self.play_turn,
             GameOperations.WIN.value: self.update_score,
+            GameOperations.MEMBERS.value: self.scoreboard_build,
         }
         self.chat_callbacks: Dict[str, Callable[[Message], None]] = {
             ChatOperations.SAY.value: self.chat_say
@@ -85,9 +86,16 @@ class WhiteBoard(BoxLayout):
     def game_create(self, message: Message) -> None:
         """Create game message from other clients"""
         self.parent.game_id = message.value.game_id
+        self.manager.ids.score_board.add_joining_player(player=message.username)
 
     def game_join(self, message: Message) -> None:
         """Join game message from other clients"""
+        self.manager.ids.score_board.add_joining_player(player=message.username)
+
+    def scoreboard_build(self, message: Message):
+        """Build scoreboard for new client"""
+        for member in message.value.members:
+            self.manager.ids.score_board.add_joining_player(player=member)
 
     def game_start(self, message: Message) -> None:
         """Start game message from other clients"""

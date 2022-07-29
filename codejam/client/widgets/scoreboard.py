@@ -25,16 +25,16 @@ class ScoreBoard(BoxLayout):
             self.upsert_score(player=player, score=score)
 
     def upsert_score(self, player: str, score: int):
-        """Updates/insert score for a pplayer."""
+        """Updates/insert score for a player."""
         if player not in self.ids:
             self._add_score(player=player, score=score)
         else:
             score_widget = self.ids[player]
             score_widget.score = score
 
-    def add_joining_player(self, message: Message):
+    def add_joining_player(self, player: str):
         """Adds player to scoreboard on join."""
-        self.upsert_score(player=message.username, score=0)
+        self.upsert_score(player=player, score=0)
 
     def _add_score(self, player: str, score: int):
         """Add score widget."""

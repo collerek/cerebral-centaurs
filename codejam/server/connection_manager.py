@@ -49,6 +49,9 @@ class ConnectionManager:
         """Accepts the connections and stores it in a list"""
         self.get_game(game_id=game_id).join(new_member=new_member)
 
+    def get_members(self, game_id: str) -> List[str]:
+        return [i.username for i in self.get_game(game_id=game_id).members]
+
     async def fill_history(self, game_id: str, new_member: User):
         """Accepts the connections and stores it in a list"""
         await self.get_game(game_id=game_id).fill_history(new_member=new_member)

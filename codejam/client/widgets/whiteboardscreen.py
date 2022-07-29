@@ -63,19 +63,16 @@ class WhiteBoardScreen(Screen):
                 self.add_widget(lobby)
                 self.manager.ids["lobby"] = lobby
             """Create new room"""
-            self.wb.message = self._prepare_message(
+            message = self._prepare_message(
                 operation=GameOperations.CREATE, include_difficulty=True
-            ).json(models_as_dict=True)
+            )
+            self.wb.message = message.json(models_as_dict=True)
         else:
             """Join existing room"""
             self.remove_lobby()
             self.wb.message = self._prepare_message(operation=GameOperations.JOIN).json(
                 models_as_dict=True
             )
-        print(self.manager.ids.wbs.ids.score_board)
-        self.manager.ids.wbs.ids.score_board.upsert_score(
-            player=self.manager.username, score=0
-        )
 
     def start_game(self) -> None:
         """Start game"""

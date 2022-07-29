@@ -29,7 +29,7 @@ class GameController(BaseController):
 
     @cached_property
     def dispatch_schema(
-        self,
+            self,
     ) -> Dict[str, Callable[[Message], Coroutine[Any, Any, Any]]]:
         """Available routes for different operations."""
         return {
@@ -37,6 +37,7 @@ class GameController(BaseController):
             GameOperations.CREATE.value: self.create_game,
             GameOperations.END.value: self.end_game,
             GameOperations.START.value: self.start_game,
+            GameOperations.MEMBERS.value: self.get_members,
         }
 
     async def start_game(self, message: Message):
@@ -125,9 +126,21 @@ class GameController(BaseController):
             game_id=message.game_id,
             value=GameMessage(success=True, game_id=message.game_id),
         )
+        members_message = self.get_members(message)
+        await user.send_message(message=members_message)
         await self.manager.broadcast(game_id=message.game_id, message=message)
         await self.manager.fill_history(game_id=message.game_id, new_member=user)
         return message.game_id
+
+    def get_members(self, message: Message):
+        """Send all game members to user"""
+        user = self.manager.get_user(message.username)
+        return Message(
+            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.MEMBERS),
+            username=user.username,
+            game_id=message.game_id,
+            value=GameMessage(success=True, game_id=message.game_id, members=self.manager.get_members(message.game_id)),
+        )
 
     async def end_game(self, message: Message):
         """End existing game by creator."""
