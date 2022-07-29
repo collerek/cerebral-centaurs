@@ -1,55 +1,16 @@
-import asyncio
 from typing import Dict
 
 import pytest
 
 from codejam.client.client import root_widget
 from codejam.client.widgets.whiteboard_screen import WhiteBoardScreen
+from tests.unit.test_client.mocks import WebsocketMock
 
 URL = f"ws://127.0.0.1:8000/ws/{root_widget.username}"
 
 
-@pytest.fixture()
-def mocked_websockets(mocker):
-    web_socket_mock = WebsocketMock()
-    mocker.patch("codejam.client.widgets.whiteboard_screen.websockets", web_socket_mock)
-    return web_socket_mock
-
-
 class Empty:
     ...
-
-
-class WebsocketMock:
-    def __init__(self):
-        self.sleep = False
-        self.refuse_connection = False
-        self.cancel = False
-        self.messages = []
-        self.url = ""
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *args):
-        return self
-
-    def connect(self, url: str):
-        if self.refuse_connection:
-            raise ConnectionRefusedError()
-        self.url = url
-        return self
-
-    async def send(self, value: str):
-        self.messages.append(value)
-
-    async def recv(self):
-        if self.cancel:
-            raise asyncio.CancelledError
-        if self.sleep:
-            self.sleep = False
-            raise asyncio.exceptions.TimeoutError
-        return self.messages.pop()
 
 
 @pytest.mark.asyncio
