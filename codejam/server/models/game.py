@@ -19,19 +19,15 @@ class Turn:
         turn_no: int,
         drawer: User,
         duration: int,
+        phrase: str,
         level: PhraseDifficulty = PhraseDifficulty.MEDIUM,
     ):
         self.turn_no = turn_no
         self.level = level
         self.drawer = drawer
         self.duration = duration
-        self.phrase = self.generate_phrase()
+        self.phrase = phrase
         self.winner: Optional[User] = None
-
-    @staticmethod
-    def generate_phrase(*args, **kwargs) -> str:
-        """Generates next phrase to guess"""
-        return PhraseGenerator.generate_phrase(*args, **kwargs)
 
 
 class Game:
@@ -52,6 +48,9 @@ class Game:
         self.turns_history: List[Turn] = []
         self.active = False
         self.active_turn: Optional[Task] = None
+
+        self._last_phrase: str = ""
+        self._last_drawer: Optional[User] = None
 
     @property
     def current_turn(self) -> Optional[Turn]:
@@ -87,10 +86,27 @@ class Game:
         self.current_turn_no += 1
         new_turn = Turn(
             turn_no=self.current_turn_no,
-            drawer=random.choice(self.members),
+            drawer=self.get_next_drawer(),
             duration=random.choice(self.allowed_durations),
+            phrase=self.generate_phrase(),
         )
         self.turns_history.append(new_turn)
+
+    def get_next_drawer(self) -> User:
+        """Chooses next drawer, must differ than the last one"""
+        drawer = random.choice(self.members)
+        while drawer == self._last_drawer:  # pragma: no cover
+            drawer = random.choice(self.members)
+        self._last_drawer = drawer
+        return drawer
+
+    def generate_phrase(self, *args, **kwargs) -> str:
+        """Generates next phrase to guess, must differ than the last one"""
+        new_phrase = PhraseGenerator.generate_phrase(*args, **kwargs)
+        while new_phrase == self._last_phrase:  # pragma: no cover
+            new_phrase = PhraseGenerator.generate_phrase(*args, **kwargs)
+        self._last_phrase = new_phrase
+        return new_phrase
 
     async def broadcast(self, message: Message, exclude: List[User] = None):
         """Broadcast the message to all active members"""

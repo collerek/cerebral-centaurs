@@ -70,14 +70,14 @@ class WhiteBoard(BoxLayout):
 
     def draw_line(self, message: Message) -> None:
         """Draw lines from other clients"""
-        with self.canvas:
+        with self.cvs.canvas:
             Color(hsv=message.value.data.colour)
             line = Line(points=message.value.data.line, width=message.value.data.width)
             self.ids[message.value.draw_id] = line
 
     def draw_rectangle(self, message: Message) -> None:
         """Draw rectangle from other clients"""
-        with self.canvas:
+        with self.cvs.canvas:
             Color(hsv=message.value.data.colour)
             rect = Rectangle(pos=message.value.data.pos, size=message.value.data.size)
             self.ids[message.value.draw_id] = rect
@@ -95,9 +95,12 @@ class WhiteBoard(BoxLayout):
 
     def play_turn(self, message: Message):
         """Play a game turn."""
-        self.parent.ids.canvas.canvas.clear()
+        self.cvs.canvas.clear()
         drawer = message.value.turn.drawer
         client = self.parent.parent.username
+        duration = message.value.turn.duration
+        self.parent.ids.counter.a = duration
+        self.parent.ids.counter.start()
         self.parent.parent.can_draw = drawer == client
         drawing_person = "your" if client == drawer else drawer
         phrase = message.value.turn.phrase if client == drawer else ""
@@ -113,6 +116,8 @@ class WhiteBoard(BoxLayout):
         """Display winner."""
         winner = message.value.turn.winner
         client = self.parent.parent.username
+        self.parent.ids.counter.cancel_animation()
+        self.parent.ids.counter.text = "WAITING FOR START"
         header = "You WON!" if client == winner else f"Player {message.value.turn.winner} WON!"
         self.display_popup(
             header=header,
@@ -129,10 +134,17 @@ class WhiteBoard(BoxLayout):
             title=message.value.exception,
             message=message.value.value,
             additional_message=message.value.error_id,
+            auto_dismiss=False,
         )
 
     @staticmethod
-    def display_popup(header: str, title: str, message: str, additional_message: str):
+    def display_popup(
+        header: str,
+        title: str,
+        message: str,
+        additional_message: str,
+        auto_dismiss: bool = True,
+    ) -> None:
         """Displays a popup message!"""
         popup = InfoPopup(
             header=header,
@@ -141,7 +153,8 @@ class WhiteBoard(BoxLayout):
             additional_message=additional_message,
         )
         popup.open()
-        Clock.schedule_once(popup.dismiss, 3)
+        if auto_dismiss:
+            Clock.schedule_once(popup.dismiss, 3)
 
 
 class Instructions(BoxLayout):
