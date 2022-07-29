@@ -4,7 +4,21 @@ from enum import Enum
 from typing import Optional
 
 
-class PhraseCategory(Enum):
+class ExtEnum(Enum):
+    """Extends Enum by list and default"""
+
+    @classmethod
+    def list(cls):
+        """List of all elements"""
+        return list(map(lambda c: c.value, cls))
+
+    @classmethod
+    def default(cls):
+        """Default value"""
+        return cls.list()[0]
+
+
+class PhraseCategory(ExtEnum):
     """Represents a category of phrases."""
 
     OBJECTS = "OBJECTS"
@@ -12,7 +26,7 @@ class PhraseCategory(Enum):
     VERBS = "VERBS"
 
 
-class PhraseDifficulty(Enum):
+class PhraseDifficulty(ExtEnum):
     """Represents difficulty of a phrase."""
 
     EASY = "EASY"

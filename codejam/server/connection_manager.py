@@ -32,9 +32,9 @@ class ConnectionManager:
             raise UserNotExist(f"User with username: {username} does not exist!")
         return user
 
-    def register_game(self, creator: User, game_id: str = None) -> str:
+    def register_game(self, creator: User, game_id: str = None, difficulty: str = None) -> str:
         """Get game from active games."""
-        game = Game(creator=creator, game_id=game_id)
+        game = Game(creator=creator, game_id=game_id, difficulty=difficulty)
         self.active_games[game.secret] = game
         creator.owned_games.append(game)
         return game.secret

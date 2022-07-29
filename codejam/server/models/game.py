@@ -33,7 +33,7 @@ class Turn:
 class Game:
     """Represents a game instance between players."""
 
-    def __init__(self, creator: User, game_id: str = None) -> None:
+    def __init__(self, creator: User, game_id: str = None, difficulty: str = None) -> None:
         self.winner_scores = {
             PhraseDifficulty.EASY: 50,
             PhraseDifficulty.MEDIUM: 100,
@@ -48,6 +48,7 @@ class Game:
         self.turns_history: List[Turn] = []
         self.active = False
         self.active_turn: Optional[Task] = None
+        self.difficulty = difficulty
 
         self._last_phrase: str = ""
         self._last_drawer: Optional[User] = None
@@ -74,6 +75,11 @@ class Game:
                 )
         return score
 
+    @property
+    def difficulty_level(self):
+        """Return set or default difficulty level."""
+        return PhraseDifficulty(self.difficulty) if self.difficulty else PhraseDifficulty.MEDIUM
+
     def win(self, winner: User):
         """Set current turn as won by winner. Cancel scheduled turn change."""
         self.current_turn.winner = winner
@@ -89,6 +95,7 @@ class Game:
             drawer=self.get_next_drawer(),
             duration=random.choice(self.allowed_durations),
             phrase=self.generate_phrase(),
+            level=self.difficulty_level,
         )
         self.turns_history.append(new_turn)
 
@@ -100,11 +107,11 @@ class Game:
         self._last_drawer = drawer
         return drawer
 
-    def generate_phrase(self, *args, **kwargs) -> str:
+    def generate_phrase(self) -> str:
         """Generates next phrase to guess, must differ than the last one"""
-        new_phrase = PhraseGenerator.generate_phrase(*args, **kwargs)
+        new_phrase = PhraseGenerator.generate_phrase(difficulty=self.difficulty_level)
         while new_phrase == self._last_phrase:  # pragma: no cover
-            new_phrase = PhraseGenerator.generate_phrase(*args, **kwargs)
+            new_phrase = PhraseGenerator.generate_phrase(difficulty=self.difficulty_level)
         self._last_phrase = new_phrase
         return new_phrase
 

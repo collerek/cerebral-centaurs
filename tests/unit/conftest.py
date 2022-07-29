@@ -1,6 +1,7 @@
 import pytest
 
 from codejam.server.interfaces.chat_message import ChatMessage
+from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
 from codejam.server.interfaces.topics import (
@@ -59,13 +60,18 @@ def test_rect(test_client: str) -> Message:
         ),
     )
 
+
 @pytest.fixture
 def game_creation_message(test_client: str) -> Message:
     return Message(
         topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
         username=test_client,
         game_id=None,
-        value=None,
+        value=GameMessage(
+            success=False,
+            game_id="",
+            turn=None
+        ),
     )
 
 
