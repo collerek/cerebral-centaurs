@@ -38,7 +38,7 @@ def test_winning_game(
         mocker.AsyncMock()
     )
     mocker.patch(
-        "codejam.server.models.game.Turn.generate_phrase",
+        "codejam.server.models.game.Game.generate_phrase",
         mocker.MagicMock(return_value="Dummy Phrase of level EASY")
     )
 
@@ -160,7 +160,7 @@ def test_running_game(
         mocker.AsyncMock()
     )
     mocker.patch(
-        "codejam.server.models.game.Turn.generate_phrase",
+        "codejam.server.models.game.Game.generate_phrase",
         mocker.MagicMock(return_value="Dummy Phrase of level EASY")
     )
 

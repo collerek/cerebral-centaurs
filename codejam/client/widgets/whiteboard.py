@@ -134,10 +134,17 @@ class WhiteBoard(BoxLayout):
             title=message.value.exception,
             message=message.value.value,
             additional_message=message.value.error_id,
+            auto_dismiss=False,
         )
 
     @staticmethod
-    def display_popup(header: str, title: str, message: str, additional_message: str):
+    def display_popup(
+        header: str,
+        title: str,
+        message: str,
+        additional_message: str,
+        auto_dismiss: bool = True,
+    ) -> None:
         """Displays a popup message!"""
         popup = InfoPopup(
             header=header,
@@ -146,7 +153,8 @@ class WhiteBoard(BoxLayout):
             additional_message=additional_message,
         )
         popup.open()
-        Clock.schedule_once(popup.dismiss, 3)
+        if auto_dismiss:
+            Clock.schedule_once(popup.dismiss, 3)
 
 
 class Instructions(BoxLayout):
