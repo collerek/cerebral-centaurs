@@ -16,10 +16,42 @@ class WhiteBoardScreen(Screen):
         super().__init__(**kwargs)
         self.lobby_widget = None
 
+    def task_callback(self, task: asyncio.Task):
+        """Used to handle exceptions inside websocket task."""
+        try:
+            return task.result()
+        except asyncio.CancelledError:
+            pass  # Task cancellation should not be treated as an error.
+        except ConnectionRefusedError as e:
+            self.reset_websocket()
+            self.wb.display_popup(
+                header="Error encountered!",
+                title=e.__class__.__name__,
+                message=str(e),
+                additional_message="Check your server and internet connections.",
+                auto_dismiss=False,
+            )
+        except Exception:
+            self.reset_websocket()
+            self.wb.display_popup(
+                header="Unexpected error encountered!",
+                title="Unexpected server error",
+                message="Please contact administrators.",
+                additional_message="",
+                auto_dismiss=False,
+            )
+
+    def reset_websocket(self):
+        """On error display menu again and remove old task."""
+        self.manager.ws = None
+        self.manager.current = "menu_screen"
+
     def on_pre_enter(self) -> None:
         """Called when the screen is about to be shown."""
         if not self.manager.ws:
-            self.manager.ws = asyncio.create_task(self.run_websocket())
+            websocket_task = asyncio.create_task(self.run_websocket())
+            websocket_task.add_done_callback(self.task_callback)
+            self.manager.ws = websocket_task
         if self.manager.create_room:
             try:
                 lobby = self.manager.ids.lobby
@@ -69,26 +101,15 @@ class WhiteBoardScreen(Screen):
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
         url = "ws://127.0.0.1:8000/ws/{0}".format(self.manager.username)
-        try:
-            print(url)
-            async with websockets.connect(url) as websocket:
+        print(url)
+        async with websockets.connect(url) as websocket:
+            while True:
+                if m := self.wb.message:
+                    self.wb.message = ""
+                    print("sending " + m)
+                    await websocket.send(m)
                 try:
-                    while True:
-                        if m := self.wb.message:
-                            self.wb.message = ""
-                            print("sending " + m)
-                            await websocket.send(m)
-                        try:
-                            self.wb.received = await asyncio.wait_for(
-                                websocket.recv(), timeout=1 / 60
-                            )
-                        except asyncio.exceptions.TimeoutError:
-                            continue
-                        await asyncio.sleep(1 / 60)
-                except asyncio.CancelledError as e:
-                    print("Loop canceled", e)
-                finally:
-                    print("Loop finished")
-                    self.manager.current = "menu_screen"
-        except (ConnectionRefusedError, asyncio.exceptions.TimeoutError) as e:
-            print("Connection refused", e)
+                    self.wb.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)
+                except asyncio.exceptions.TimeoutError:
+                    continue
+                await asyncio.sleep(1 / 60)

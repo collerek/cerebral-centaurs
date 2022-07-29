@@ -19,7 +19,7 @@ class RootWidget(ScreenManager):
     can_draw = BooleanProperty(False)
     username = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
     game_id = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
-    ws = ObjectProperty(None)
+    ws = ObjectProperty(None, allownone=True)
 
 
 root_path = pathlib.Path(__file__).parent.resolve()

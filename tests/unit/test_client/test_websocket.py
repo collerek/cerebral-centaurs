@@ -90,7 +90,11 @@ async def test_websockets(
     screen.wb = mocker.Mock()
     screen.manager = mocker.Mock(username=root_widget.username)
     screen.wb.message = message
-    await screen.run_websocket()
+    if mocked_websockets.refuse_connection:
+        with pytest.raises(ConnectionRefusedError):
+            await screen.run_websocket()
+    else:
+        await screen.run_websocket()
     if expected_received is not None:
         assert screen.wb.received == expected_received
     else:
