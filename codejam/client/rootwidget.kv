@@ -54,8 +54,8 @@ RootWidget:
             text: "join room"
             on_release:
                 root.create_room = False
-                root.username = root.ids.username.text or root.username
-                root.game_id = root.ids.game_selection.text
+                root.username = username.text or root.username
+                root.game_id = game_selection.text
                 root.current = 'whiteboard'
         GameButton:
             canvas.before:
@@ -69,8 +69,8 @@ RootWidget:
             text: "create room"
             on_release:
                 root.create_room = True
-                root.difficulty = root.ids.difficulty.text
-                root.username = root.ids.username.text or root.username
+                root.difficulty = difficulty.text
+                root.username = username.text or root.username
                 root.current = 'whiteboard'
     WhiteBoardScreen:
         id: wbs
