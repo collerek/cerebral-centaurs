@@ -31,9 +31,9 @@ class WhiteBoardScreen(Screen):
                 self.add_widget(lobby)
                 self.manager.ids["lobby"] = lobby
             """Create new room"""
-            self.wb.message = self._prepare_message(operation=GameOperations.CREATE).json(
-                models_as_dict=True
-            )
+            self.wb.message = self._prepare_message(
+                operation=GameOperations.CREATE, include_difficulty=True
+            ).json(models_as_dict=True)
         else:
             """Join existing room"""
             self.remove_lobby()
@@ -56,14 +56,20 @@ class WhiteBoardScreen(Screen):
         except ReferenceError:  # pragma: no cover
             pass
 
-    def _prepare_message(self, operation: GameOperations, include_game_id: bool = True):
+    def _prepare_message(
+        self,
+        operation: GameOperations,
+        include_game_id: bool = True,
+        include_difficulty: bool = False,
+    ):
         """Helper to create proper messages."""
+        difficulty = self.manager.difficulty if include_difficulty else None
         game_id = self.manager.game_id if include_game_id else None
         return Message(
             topic=Topic(type=TopicEnum.GAME, operation=operation),
             username=self.manager.username,
             game_id=game_id,
-            value=GameMessage(success=False, game_id=game_id),
+            value=GameMessage(success=False, game_id=game_id, difficulty=difficulty),
         )
 
     async def run_websocket(self) -> None:

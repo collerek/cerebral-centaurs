@@ -1,11 +1,13 @@
+#:import pd codejam.server.models.phrase_generator.PhraseDifficulty
+
 <Lobby@RelativeLayout>
 
 <MenuScreen@Screen>
 
 <GameButton@Button>:
-    size_hint: 0.4, 0.5
+    size_hint: 0.4, 0.4
     background_color: 0, 0, 0, 1
-    font_size: sp(25)
+    font_size: sp(30)
 
 <LobbyButton@Button>:
     text: "Start game"
@@ -17,21 +19,29 @@ RootWidget:
     MenuScreen:
         id: menu_screen
         name: 'menu_screen'
-        TextInput:
-            font_size: self.height * 0.6
-            pos_hint: {"x": .25, "y": .8}
-            size_hint: .5, .1
-            hint_text: 'username'
-            multiline: False
-            on_text_validate:
-                root.username = self.text
-        TextInput:
-            id: game_selection
-            font_size: self.height * 0.6
-            pos_hint: {"x": .25, "y": .7}
-            size_hint: .5, .1
-            hint_text: 'entry code'
-            multiline: False
+        RelativeLayout:
+            TextInput:
+                id: username
+                background_color: 0.2, 0.2, 0.2, 1
+                font_size: self.height * 0.6
+                pos_hint: {"x": .25, "y": .8}
+                size_hint: .45, .09
+                hint_text: 'username'
+                multiline: False
+            TextInput:
+                id: game_selection
+                background_color: 0.2, 0.2, 0.2, 1
+                font_size: self.height * 0.6
+                pos_hint: {"x": .25, "y": .7}
+                size_hint: .45, .09
+                hint_text: 'entry code'
+                multiline: False
+            Spinner:
+                id: difficulty
+                pos_hint: {"x": .25, "y": .6}
+                size_hint: .45, .09
+                values: pd.list()
+                text: pd.default()
         GameButton:
             canvas.before:
                 Color:
@@ -44,6 +54,7 @@ RootWidget:
             text: "join room"
             on_release:
                 root.create_room = False
+                root.username = root.ids.username.text or root.username
                 root.game_id = root.ids.game_selection.text
                 root.current = 'whiteboard'
         GameButton:
@@ -55,10 +66,11 @@ RootWidget:
                     rectangle: self.x, self.y, self.width, self.height
             color: 0.5, 0.2, 0.9, 1
             pos: root.width * 0.05, root.height * 0.05
-            size_hint: .4, .5
             text: "create room"
             on_release:
                 root.create_room = True
+                root.difficulty = root.ids.difficulty.text
+                root.username = root.ids.username.text or root.username
                 root.current = 'whiteboard'
     WhiteBoardScreen:
         id: wbs
