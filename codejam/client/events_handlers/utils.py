@@ -1,6 +1,6 @@
 from kivy.clock import Clock
 
-from codejam.client.widgets.whiteboard import InfoPopup
+from codejam.client.widgets.whiteboard_tools import InfoPopup
 
 
 def display_popup(

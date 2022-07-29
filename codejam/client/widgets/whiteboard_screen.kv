@@ -1,137 +1,91 @@
+<CLabel@Label>:
+    canvas.before:
+        Color:
+            rgb: .2, .5, .9
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<CButton@ButtonBehavior+Label>:
+    canvas.before:
+        Color:
+            rgb: .5, .2, .9
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+
 <WhiteBoardScreen>:
     id: wbs
     cvs: canvas
-    WhiteBoard:
-        id: wb
-        message: ""
-        bg_color: 0, 0, 0
+    message: ''
+    received: ''
+    label_y : 1
+    left_x: 0
+    right_x: .95
+    bottom_y: 0
+    bg_color: .3, .2, .1
+    canvas:
+        Color:
+            hsv: self.bg_color or (0, 0, 0)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    DrawCanvas:
+        screen: root
+        pos_hint: {'center_x': .5, 'center_y': .5}
+        offset_x: 0
+        offset_y: 0
+        id: canvas
+        size_hint: None, None
+        size: 400, 400
+        draw_mark: .1, .2, .3
+        line_width: 2
         canvas.before:
             Color:
-                hsv: self.bg_color or (0, 0, 0)
+                hsv: self.draw_mark or (.1, .2, .3)
             Rectangle:
-                pos: self.pos
+                pos: self.x + self.offset_x, self.y + self.offset_y
                 size: self.size
+    CLabel
+        id: label
+        size_hint_y: .1
+        pos_hint: {'y': root.label_y}
+        color: 1, 0, 1, 1
+        font_size: dp(10)
+        text_size: self.width, None
+        texture_size: self.size
+        halign: 'center'
+        text: root.received
+    CanvasTools:
+        size_hint: .6, .2
+        id: tools
+        _canvas: canvas
+        pos_hint: {'top': root.bottom_y, 'center_x': .5}
+    Instructions:
+        _canvas: canvas
+        size_hint: .2, .6
+        pos_hint: {'right': root.left_x, 'center_y': .5}
+    ChatWindow:
+        id: chat_window
+        username: root.manager.username
+        screen: root
+        size_hint: .25, .6
+        pos_hint: {'x': root.right_x, 'center_y': .5}
         orientation: 'vertical'
-        Label:
-            color: 1, 0, 1, 1
-            id: label
-            size_hint_y: .1
-            font_size: dp(10)
-            text_size: self.width, None
-            texture_size: self.size
-            halign: 'center'
-            text: root.received
-        Counter:
-            id: counter
-            size_hint_y: .1
-            text: "WAITING FOR START"
-            color: 1, 0, 0, 1
-            font_size: dp(20)
-        FloatLayout:
-            canvas:
-                Color:
-                    hsv: .3, .2, .1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            DrawCanvas:
-                screen: root
-                pos_hint: {'center_x': .5, 'center_y': .5}
-                offset_x: 0
-                offset_y: 0
-                id: canvas
-                size_hint: None, None
-                size: 400, 400
-                draw_mark: .1, .2, .3
-                line_width: 2
-                canvas.before:
-                    Color:
-                        hsv: self.draw_mark or (.1, .2, .3)
-                    Rectangle:
-                        pos: self.x + self.offset_x, self.y + self.offset_y
-                        size: self.size
-            CanvasTools:
-                size_hint: .6, .2
-                id: tools
-                _canvas: canvas
-            Instructions:
-                id: instructions
-                size_hint: .1, .5
-                pos_hint: {'top': .9}
-                _canvas: canvas
-            Button:
-                size_hint: .05,.05
-                pos_hint: {'top': 1}
-                text: '>' if instructions.x < 0 else '<'
-                on_release:
-                    instructions.x = [-instructions.width, self.x][self.text == '>']
-            ChatWindow:
-                id: chat_window
-                username: root.manager.username
-                screen: root
-                hidden: False
-                pos_hint: {'right':.98, 'top':.95} if not self.hidden else {'x': 1}
-                size_hint: .2, .9
-            Button:
-                text: 'show' if chat_window.hidden else 'hide'
-                pos_hint: {'right':.98, 'y': 0}
-                size_hint: .05,.05
-                on_release: chat_window.hidden = not chat_window.hidden
+        opacity: .8
+    Counter:
+        id: counter
+        size_hint_y: .1
+        pos_hint: {'top': .95, 'center_x': .5}
+        text: "WAITING FOR START"
+        color: .5, .9, .2
+        font_size: dp(20)
 
-<CanvasTools>:
-    padding: dp(10)
-    spacing: dp(10)
-    BoxLayout:
-        orientation: 'vertical'
-        Button:
-            text: 'inc width'
-            on_release:
-                root._canvas.width += 5
-        Button:
-            text: 'dec width'
-            on_release:
-                root._canvas.width -= 5
-    BoxLayout:
-        orientation: 'vertical'
-        Button:
-            text: 'inc height'
-            on_release:
-                root._canvas.height += 10
-        Button:
-            text: 'dec height'
-            on_release:
-                root._canvas.height -= 10
-    BoxLayout:
-        orientation: 'vertical'
-        Button:
-            text: 'right'
-            on_release:
-                root._canvas.offset_x += 10
-        Button:
-            text: 'left'
-            on_release:
-                root._canvas.offset_x -= 10
-    BoxLayout:
-        orientation: 'vertical'
-        Button:
-            text: 'up'
-            on_release:
-                root._canvas.offset_y += 10
-        Button:
-            text: 'down'
-            on_release:
-                root._canvas.offset_y -= 10
-    Button:
-        size_hint_x: .1
-        text: '->' if root.x else '<-'
-        on_release:
-            root.x = -self.x
 
 <Instructions>:
     orientation: 'vertical'
     spacing: dp(5)
     padding: dp(5)
-    id: instructions
     Widget:
         id: color_picker
         value: 0
@@ -147,45 +101,96 @@
     BoxLayout:
         orientation: 'vertical'
         Label:
-            text: ''
-        BoxLayout:
-            Button:
-                text: '-'
-                on_release:
-                    root._canvas.line_width -= 1
-            Button:
-                text: '+'
-                on_release:
-                    root._canvas.line_width += 1
+            text: str(slider.value)
+        Slider:
+            id: slider
+            opacity: 1
+            color: .2, .5, .9
+            value: 2
+            background_width: 0
+            value_track: True
+            value_track_color: .2, .5, .9
+            value_track_width: dp(10)
+            min: 1
+            max: 50
+            step: 1
+            on_value: root._canvas.line_width = self.value
     GridLayout:
         cols: 2
-        Button:
-            inst: instructions
+        spacing: dp(5)
+        padding: dp(5)
+        CButton:
             text: 'line'
             on_release:
                 root._canvas.line_width = 2
                 root._canvas.tool = 'line'
-                root._canvas.colour = self.inst.ids.color_picker.value, 1, 1
-        Button:
-            inst: instructions
+                root._canvas.colour = color_picker.value, 1, 1
+        CButton:
             text: 'rect'
             on_release:
                 root._canvas.line_width = 2
                 root._canvas.tool = 'rect'
-                root._canvas.colour = self.inst.ids.color_picker.value, 1, 1
-        Button:
-            inst: instructions
+                root._canvas.colour = color_picker.value, 1, 1
+        CButton:
             text: 'frame'
             on_release:
                 root._canvas.line_width = 2
                 root._canvas.tool = 'frame'
-                root._canvas.colour = self.inst.ids.color_picker.value, 1, 1
-    Button:
+                root._canvas.colour = color_picker.value, 1, 1
+    CButton:
         text: 'eraser'
         on_release:
             root._canvas.line_width = 10
             root._canvas.tool = 'line'
             root._canvas.colour = root._canvas.draw_mark
+
+<CanvasTools>:
+    padding: dp(5)
+    spacing: dp(5)
+    BoxLayout:
+        spacing: dp(5)
+        orientation: 'vertical'
+        CButton:
+            text: 'inc width'
+            on_release:
+                root._canvas.width += 5
+        CButton:
+            text: 'dec width'
+            on_release:
+                root._canvas.width -= 5
+    BoxLayout:
+        spacing: dp(5)
+        orientation: 'vertical'
+        CButton:
+            text: 'inc height'
+            on_release:
+                root._canvas.height += 10
+        CButton:
+            text: 'dec height'
+            on_release:
+                root._canvas.height -= 10
+    BoxLayout:
+        spacing: dp(5)
+        orientation: 'vertical'
+        CButton:
+            text: 'right'
+            on_release:
+                root._canvas.offset_x += 10
+        CButton:
+            text: 'left'
+            on_release:
+                root._canvas.offset_x -= 10
+    BoxLayout:
+        spacing: dp(5)
+        orientation: 'vertical'
+        CButton:
+            text: 'up'
+            on_release:
+                root._canvas.offset_y += 10
+        CButton:
+            text: 'down'
+            on_release:
+                root._canvas.offset_y -= 10
 
 <InfoPopup>:
     auto_dismiss: False
