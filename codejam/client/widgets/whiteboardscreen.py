@@ -72,7 +72,7 @@ class WhiteBoardScreen(Screen):
             pass  # Task cancellation should not be treated as an error.
         except ConnectionRefusedError as e:
             self.reset_websocket()
-            self.wb.display_popup(
+            self.display_popup(
                 header="Error encountered!",
                 title=e.__class__.__name__,
                 message=str(e),
@@ -81,7 +81,7 @@ class WhiteBoardScreen(Screen):
             )
         except Exception:
             self.reset_websocket()
-            self.wb.display_popup(
+            self.display_popup(
                 header="Unexpected error encountered!",
                 title="Unexpected server error",
                 message="Please contact administrators.",
@@ -228,7 +228,13 @@ class WhiteBoardScreen(Screen):
         )
 
     @staticmethod
-    def display_popup(header: str, title: str, message: str, additional_message: str):
+    def display_popup(
+        header: str,
+        title: str,
+        message: str,
+        additional_message: str,
+        auto_dismiss: bool = True,
+    ) -> None:
         """Displays a popup message!"""
         popup = InfoPopup(
             header=header,
@@ -237,7 +243,8 @@ class WhiteBoardScreen(Screen):
             additional_message=additional_message,
         )
         popup.open()
-        Clock.schedule_once(popup.dismiss, 3)
+        if auto_dismiss:
+            Clock.schedule_once(popup.dismiss, 3)
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
@@ -245,12 +252,12 @@ class WhiteBoardScreen(Screen):
         print(url)
         async with websockets.connect(url) as websocket:
             while True:
-                if m := self.wb.message:
-                    self.wb.message = ""
+                if m := self.message:
+                    self.message = ""
                     print("sending " + m)
                     await websocket.send(m)
                 try:
-                    self.wb.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)
+                    self.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)
                 except asyncio.exceptions.TimeoutError:
                     continue
                 await asyncio.sleep(1 / 60)
