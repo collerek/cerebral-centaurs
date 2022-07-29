@@ -25,7 +25,7 @@ class ScoreBoard(BoxLayout):
             self.upsert_score(player=player, score=score)
 
     def upsert_score(self, player: str, score: int):
-        """Updates/insert score for a pplayer."""
+        """Updates/insert score for a player."""
         if player not in self.ids:
             self._add_score(player=player, score=score)
         else:

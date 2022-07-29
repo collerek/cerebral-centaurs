@@ -34,7 +34,7 @@ class GameController(BaseController):
 
     @cached_property
     def dispatch_schema(
-        self,
+            self,
     ) -> Dict[str, Callable[[Message], Coroutine[Any, Any, Any]]]:
         """Available routes for different operations."""
         return {
@@ -197,6 +197,16 @@ class GameController(BaseController):
         else:
             game.active = False
             await self.end_game(message=message)
+
+    def get_members(self, message: Message):
+        """Send all game members to user"""
+        user = self.manager.get_user(message.username)
+        return Message(
+            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.MEMBERS),
+            username=user.username,
+            game_id=message.game_id,
+            value=GameMessage(success=True, game_id=message.game_id, members=self.manager.get_members(message.game_id)),
+        )
 
     async def end_game(self, message: Message):
         """End existing game by creator."""
