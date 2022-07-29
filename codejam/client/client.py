@@ -17,6 +17,7 @@ class RootWidget(ScreenManager):
     create_room = BooleanProperty(False)
     game_active = BooleanProperty(False)
     can_draw = BooleanProperty(False)
+    difficulty = StringProperty("")
     username = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
     game_id = StringProperty("".join(choices(string.ascii_letters + string.digits, k=8)))
     ws = ObjectProperty(None, allownone=True)
