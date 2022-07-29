@@ -3,6 +3,7 @@ import asyncio
 import websockets
 from kivy.factory import Factory
 from kivy.uix.screenmanager import Screen
+from websockets.exceptions import ConnectionClosedError
 
 from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
@@ -28,6 +29,15 @@ class WhiteBoardScreen(Screen):
                 header="Error encountered!",
                 title=e.__class__.__name__,
                 message=str(e),
+                additional_message="Check your server and internet connections.",
+                auto_dismiss=False,
+            )
+        except ConnectionClosedError as e:
+            self.reset_websocket()
+            self.wb.display_popup(
+                header="Connection lost",
+                title="You've been disconnected from the server",
+                message="Error: " + str(e),
                 additional_message="Check your server and internet connections.",
                 auto_dismiss=False,
             )
