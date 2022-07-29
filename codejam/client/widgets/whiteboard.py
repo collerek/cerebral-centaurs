@@ -98,6 +98,9 @@ class WhiteBoard(BoxLayout):
         self.cvs.canvas.clear()
         drawer = message.value.turn.drawer
         client = self.parent.parent.username
+        duration = message.value.turn.duration
+        self.parent.ids.counter.a = duration
+        self.parent.ids.counter.start()
         self.parent.parent.can_draw = drawer == client
         drawing_person = "your" if client == drawer else drawer
         phrase = message.value.turn.phrase if client == drawer else ""
@@ -113,6 +116,8 @@ class WhiteBoard(BoxLayout):
         """Display winner."""
         winner = message.value.turn.winner
         client = self.parent.parent.username
+        self.parent.ids.counter.cancel_animation()
+        self.parent.ids.counter.text = "WAITING FOR START"
         header = "You WON!" if client == winner else f"Player {message.value.turn.winner} WON!"
         self.display_popup(
             header=header,

@@ -120,7 +120,7 @@ def game_turn_message() -> Message:
                 turn_no=1,
                 active=True,
                 drawer=root_widget.username,
-                duration=30,
+                duration=1,
                 level=PhraseDifficulty.MEDIUM,
                 score={root_widget.username: 100},
                 phrase="Dummy",
@@ -142,7 +142,7 @@ def game_win_message() -> Message:
                 turn_no=1,
                 active=True,
                 winner=root_widget.username,
-                duration=30,
+                duration=1,
                 level=PhraseDifficulty.MEDIUM,
                 score={root_widget.username: 100},
                 phrase="Dummy",
@@ -505,7 +505,10 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
         assert popup.title == "Now is your turn to draw!"
-        assert popup.message == "You have 30 seconds to draw!"
+        assert (
+            popup.message
+            == f"You have {self.game_turn_message.value.turn.duration} seconds to draw!"
+        )
 
         popup.dismiss()
         self.advance_frames(1)
@@ -530,7 +533,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         assert popup.additional_message == "Next turn will start in 5 seconds!"
 
         popup.dismiss()
-        self.advance_frames(1)
+        self.advance_frames(10)
 
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
