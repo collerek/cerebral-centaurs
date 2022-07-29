@@ -124,6 +124,7 @@ class WhiteBoard(BoxLayout):
         """Display winner."""
         winner = message.value.turn.winner
         client = self.parent.parent.username
+        self.manager.ids.score_board.update_score(message=message)
         self.parent.ids.counter.cancel_animation()
         self.parent.ids.counter.text = "WAITING FOR START"
         header = "You WON!" if client == winner else f"Player {message.value.turn.winner} WON!"
