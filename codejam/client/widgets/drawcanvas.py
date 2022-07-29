@@ -69,7 +69,7 @@ class DrawCanvas(Widget):
             if operator:
                 draw_id, operation, data = operator(touch)
                 if self.tool == Tools.LINE.value:
-                    self.root.message = self._prepare_message(
+                    self.screen.message = self._prepare_message(
                         draw_id=draw_id, operation=operation, data=data
                     ).json(models_as_dict=True)
 
@@ -169,7 +169,7 @@ class DrawCanvas(Widget):
         """Prepare the draw message."""
         return Message(
             topic=Topic(type=TopicEnum.DRAW, operation=operation),
-            username=self.wbs.manager.username,
-            game_id=self.wbs.manager.game_id,
+            username=self.screen.manager.username,
+            game_id=self.screen.manager.game_id,
             value=PictureMessage(draw_id=str(draw_id), data=data),
         )

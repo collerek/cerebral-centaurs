@@ -1,12 +1,10 @@
 <WhiteBoardScreen>:
-    wb: wb
     id: wbs
+    cvs: canvas
     WhiteBoard:
         id: wb
         message: ""
         bg_color: 0, 0, 0
-        manager: wbs
-        cvs: canvas
         canvas.before:
             Color:
                 hsv: self.bg_color or (0, 0, 0)
@@ -22,6 +20,7 @@
             text_size: self.width, None
             texture_size: self.size
             halign: 'center'
+            text: root.received
             text: wb.btn_text
         Counter:
             id: counter
@@ -37,8 +36,7 @@
                     pos: self.pos
                     size: self.size
             DrawCanvas:
-                root: wb
-                wbs: root
+                screen: root
                 pos_hint: {'center_x': .5, 'center_y': .5}
                 offset_x: 0
                 offset_y: 0
@@ -71,8 +69,7 @@
             ChatWindow:
                 id: chat_window
                 username: root.manager.username
-                wb: wb
-                wbs: root
+                screen: root
                 hidden: False
                 pos_hint: {'right':.98, 'top':.95} if not self.hidden else {'x': 1}
                 size_hint: .2, .9
