@@ -15,6 +15,7 @@ class ChatController(BaseController):
 
     def __init__(self, manager: ConnectionManager):
         super().__init__(manager=manager)
+        self.turn_delay = 5
 
     @cached_property
     def dispatch_schema(
@@ -59,9 +60,13 @@ class ChatController(BaseController):
                 game_id=won_message.game_id,
                 message=won_message,
             )
-            await asyncio.sleep(5)
+            await self.wait_till_next_turn()
             game_controller = GameController(manager=self.manager)
             await game_controller.execute_turn(game=game, user=user)
+
+    async def wait_till_next_turn(self):  # pragma no cover
+        """Introduce delay between rounds."""
+        await asyncio.sleep(self.turn_delay)
 
     def censor_drawer(self, message: Message) -> Message:
         """Removes words from chat that are in the guess phrase."""

@@ -43,6 +43,7 @@ RootWidget:
             pos: root.width * 0.55, root.height * 0.05
             text: "join room"
             on_release:
+                root.create_room = False
                 root.game_id = root.ids.game_selection.text
                 root.current = 'whiteboard'
         GameButton:

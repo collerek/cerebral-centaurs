@@ -1,9 +1,11 @@
 <WhiteBoardScreen>:
     wb: wb
+    id: wbs
     WhiteBoard:
         id: wb
         message: ""
         bg_color: 0, 0, 0
+        manager: wbs
         canvas.before:
             Color:
                 hsv: self.bg_color or (0, 0, 0)

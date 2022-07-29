@@ -4,7 +4,7 @@ from typing import Callable, Dict, cast
 
 from kivy.graphics import Color, Line, Rectangle
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import Clock, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
 from kivy.uix.widget import Widget
@@ -95,29 +95,25 @@ class WhiteBoard(BoxLayout):
 
     def play_turn(self, message: Message):
         """Play a game turn."""
-        self.parent.parent.can_draw = False
-        if message.value.turn.drawer == self.parent.parent.username:
-            self.parent.parent.can_draw = True
-            self.display_popup(
-                header="Next turn!",
-                title="Now is your turn to draw!",
-                message=f"You have {message.value.turn.duration} seconds to draw:",
-                additional_message=message.value.turn.phrase,
-            )
-        else:
-            self.display_popup(
-                header="Next turn!",
-                title=f"Now is {message.value.turn.drawer} turn to draw!",
-                message=f"You have {message.value.turn.duration} seconds to guess!",
-                additional_message="",
-            )
+        self.parent.ids.canvas.canvas.clear()
+        drawer = message.value.turn.drawer
+        client = self.parent.parent.username
+        self.parent.parent.can_draw = drawer == client
+        drawing_person = "your" if client == drawer else drawer
+        phrase = message.value.turn.phrase if client == drawer else ""
+        action = "draw" if client == drawer else "guess"
+        self.display_popup(
+            header="Next turn!",
+            title=f"Now is {drawing_person} turn to draw!",
+            message=f"You have {message.value.turn.duration} seconds to {action}!",
+            additional_message=phrase,
+        )
 
     def update_score(self, message: Message):
         """Display winner."""
-        if message.value.turn.winner == self.parent.parent.username:
-            header = "You WON!"
-        else:
-            header = f"Player {message.value.turn.winner} WON!"
+        winner = message.value.turn.winner
+        client = self.parent.parent.username
+        header = "You WON!" if client == winner else f"Player {message.value.turn.winner} WON!"
         self.display_popup(
             header=header,
             title="The phrase guessed was:",
@@ -145,6 +141,7 @@ class WhiteBoard(BoxLayout):
             additional_message=additional_message,
         )
         popup.open()
+        Clock.schedule_once(popup.dismiss, 3)
 
 
 class Instructions(BoxLayout):
