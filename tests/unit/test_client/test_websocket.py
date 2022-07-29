@@ -20,11 +20,6 @@ class Empty:
     ...
 
 
-class ManagerMock():
-    def __init__(self):
-        self.username = "test"
-
-
 class WebsocketMock:
     def __init__(self):
         self.sleep = False
@@ -32,7 +27,6 @@ class WebsocketMock:
         self.cancel = False
         self.messages = []
         self.url = ""
-        self.wb = Empty()
 
     async def __aenter__(self):
         return self
@@ -85,19 +79,13 @@ async def test_websockets(
     if attributes:
         for key, value in attributes.items():
             setattr(mocked_websockets, key, value)
-    screen = WhiteBoardScreen(manager=ManagerMock())
+    screen = WhiteBoardScreen(manager=mocker.Mock(username=root_widget.username))
     message = "test message"
-    screen.wb = mocker.Mock()
-    screen.manager = mocker.Mock(username=root_widget.username)
-    screen.wb.message = message
-    if mocked_websockets.refuse_connection:
-        with pytest.raises(ConnectionRefusedError):
-            await screen.run_websocket()
-    else:
-        await screen.run_websocket()
+    screen.message = message
+    await screen.run_websocket()
     if expected_received is not None:
-        assert screen.wb.received == expected_received
+        assert screen.received == expected_received
     else:
-        assert isinstance(screen.wb.received, mocker.Mock)
-    assert screen.wb.message == expected_message
+        assert isinstance(screen.received, mocker.Mock)
+    assert screen.message == expected_message
     assert mocked_websockets.url == expected_url

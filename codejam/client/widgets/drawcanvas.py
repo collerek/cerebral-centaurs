@@ -47,7 +47,7 @@ class DrawCanvas(Widget):
 
     def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
-        if self.parent.parent.parent.parent.can_draw:
+        if self.screen.manager.can_draw:
             if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
                 with self.canvas:
                     Color(*self.colour, mode="hsv")
@@ -80,7 +80,7 @@ class DrawCanvas(Widget):
             if operator:
                 if self.tool != Tools.LINE.value:
                     draw_id, operation, data = operator(touch)
-                    self.root.message = self._prepare_message(
+                    self.screen.message = self._prepare_message(
                         draw_id=draw_id, operation=operation, data=data
                     ).json(models_as_dict=True)
 
