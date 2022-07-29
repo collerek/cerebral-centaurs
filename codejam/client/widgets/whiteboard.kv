@@ -167,21 +167,21 @@
             inst: instructions
             text: 'line'
             on_release:
-                root._canvas.line_width = 1
+                root._canvas.line_width = 2
                 root._canvas.tool = 'line'
                 root._canvas.colour = self.inst.ids.color_picker.value, 1, 1
         Button:
             inst: instructions
             text: 'rect'
             on_release:
-                root._canvas.line_width = 1
+                root._canvas.line_width = 2
                 root._canvas.tool = 'rect'
                 root._canvas.colour = self.inst.ids.color_picker.value, 1, 1
         Button:
             inst: instructions
             text: 'frame'
             on_release:
-                root._canvas.line_width = 1
+                root._canvas.line_width = 2
                 root._canvas.tool = 'frame'
                 root._canvas.colour = self.inst.ids.color_picker.value, 1, 1
     Button:
