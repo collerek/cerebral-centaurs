@@ -11,10 +11,6 @@ def test_generates_string_phrase():
     assert isinstance(PhraseGenerator.generate_phrase(), str)
 
 
-def test_generates_phrases_differ():
-    assert PhraseGenerator.generate_phrase() != PhraseGenerator.generate_phrase()
-
-
 def test_difficulties_work():
     for enum in PhraseDifficulty:
         assert isinstance(PhraseGenerator.generate_phrase(difficulty=enum), str)
