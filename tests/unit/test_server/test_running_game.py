@@ -34,6 +34,10 @@ def test_winning_game(
         dumy_delay_wrapper
     )
     mocker.patch(
+        "codejam.server.controllers.chat_controller.ChatController.wait_till_next_turn",
+        mocker.AsyncMock()
+    )
+    mocker.patch(
         "codejam.server.models.game.Turn.generate_phrase",
         mocker.MagicMock(return_value="Dummy Phrase of level EASY")
     )
@@ -150,6 +154,10 @@ def test_running_game(
     mocker.patch(
         "codejam.server.controllers.game_controller.delay_wrapper",
         dumy_delay_wrapper
+    )
+    mocker.patch(
+        "codejam.server.controllers.chat_controller.ChatController.wait_till_next_turn",
+        mocker.AsyncMock()
     )
     mocker.patch(
         "codejam.server.models.game.Turn.generate_phrase",

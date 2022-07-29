@@ -47,10 +47,11 @@ class DrawCanvas(Widget):
 
     def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
-        if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
-            with self.canvas:
-                Color(*self.colour, mode="hsv")
-                self.drawables.get(self.tool)(touch)
+        if self.parent.parent.parent.parent.can_draw:
+            if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
+                with self.canvas:
+                    Color(*self.colour, mode="hsv")
+                    self.drawables.get(self.tool)(touch)
 
     def select_operator(
         self, touch_data: Dict
@@ -67,9 +68,21 @@ class DrawCanvas(Widget):
             operator = self.select_operator(touch.ud)
             if operator:
                 draw_id, operation, data = operator(touch)
-                self.root.message = self._prepare_message(
-                    draw_id=draw_id, operation=operation, data=data
-                ).json(models_as_dict=True)
+                if self.tool == Tools.LINE.value:
+                    self.root.message = self._prepare_message(
+                        draw_id=draw_id, operation=operation, data=data
+                    ).json(models_as_dict=True)
+
+    def on_touch_up(self, touch: MotionEvent) -> None:
+        """Called when a touch up event occurs"""
+        if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
+            operator = self.select_operator(touch.ud)
+            if operator:
+                if self.tool != Tools.LINE.value:
+                    draw_id, operation, data = operator(touch)
+                    self.root.message = self._prepare_message(
+                        draw_id=draw_id, operation=operation, data=data
+                    ).json(models_as_dict=True)
 
     def _draw_frame(self, touch: MotionEvent) -> None:
         """Draw a frame"""

@@ -4,7 +4,7 @@ from typing import Callable, Dict, cast
 
 from kivy.graphics import Color, Line, Rectangle
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import Clock, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
 from kivy.uix.widget import Widget
@@ -39,6 +39,8 @@ class WhiteBoard(BoxLayout):
             GameOperations.CREATE.value: self.game_create,
             GameOperations.JOIN.value: self.game_join,
             GameOperations.START.value: self.game_start,
+            GameOperations.TURN.value: self.play_turn,
+            GameOperations.WIN.value: self.update_score,
         }
         self.chat_callbacks: Dict[str, Callable[[Message], None]] = {
             ChatOperations.SAY.value: self.chat_say
@@ -63,7 +65,8 @@ class WhiteBoard(BoxLayout):
 
     def chat_say(self, message: Message) -> None:
         """Chat message from other clients"""
-        self.parent.ids.chat_window.add_message(**message.value.dict())
+        if message.username != self.parent.parent.username:
+            self.parent.ids.chat_window.add_message(**message.value.dict(), propagate=False)
 
     def draw_line(self, message: Message) -> None:
         """Draw lines from other clients"""
@@ -90,15 +93,55 @@ class WhiteBoard(BoxLayout):
         """Start game message from other clients"""
         self.parent.game_active = True
 
-    @staticmethod
-    def display_error(message: Message) -> None:
+    def play_turn(self, message: Message):
+        """Play a game turn."""
+        self.parent.ids.canvas.canvas.clear()
+        drawer = message.value.turn.drawer
+        client = self.parent.parent.username
+        self.parent.parent.can_draw = drawer == client
+        drawing_person = "your" if client == drawer else drawer
+        phrase = message.value.turn.phrase if client == drawer else ""
+        action = "draw" if client == drawer else "guess"
+        self.display_popup(
+            header="Next turn!",
+            title=f"Now is {drawing_person} turn to draw!",
+            message=f"You have {message.value.turn.duration} seconds to {action}!",
+            additional_message=phrase,
+        )
+
+    def update_score(self, message: Message):
+        """Display winner."""
+        winner = message.value.turn.winner
+        client = self.parent.parent.username
+        header = "You WON!" if client == winner else f"Player {message.value.turn.winner} WON!"
+        self.display_popup(
+            header=header,
+            title="The phrase guessed was:",
+            message=message.value.turn.phrase,
+            additional_message="Next turn will start in 5 seconds!",
+        )
+
+    def display_error(self, message: Message) -> None:
         """Display error modal."""
-        popup = ErrorPopup(
+        self.parent.parent.current = "menu_screen"
+        self.display_popup(
+            header="Error encountered!",
             title=message.value.exception,
             message=message.value.value,
-            error_code=message.value.error_id,
+            additional_message=message.value.error_id,
+        )
+
+    @staticmethod
+    def display_popup(header: str, title: str, message: str, additional_message: str):
+        """Displays a popup message!"""
+        popup = InfoPopup(
+            header=header,
+            title=title,
+            message=message,
+            additional_message=additional_message,
         )
         popup.open()
+        Clock.schedule_once(popup.dismiss, 3)
 
 
 class Instructions(BoxLayout):
@@ -113,12 +156,13 @@ class CanvasTools(BoxLayout):
     ...
 
 
-class ErrorPopup(ModalView):
+class InfoPopup(ModalView):
     """ErrorPopup"""
 
+    header = StringProperty("")
     title = StringProperty("")
     message = StringProperty("")
-    error_code = StringProperty("")
+    additional_message = StringProperty("")
 
 
 root_path = pathlib.Path(__file__).parent.resolve()

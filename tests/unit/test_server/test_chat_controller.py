@@ -16,4 +16,4 @@ def test_censoring_message(chat_message: Message, mocker):
     chat_message.value.message = "Test Forbidden word"
     chat_message.username = "client"
     message = chat_controller.censor_drawer(chat_message)
-    assert message.value.message == "Test word"
+    assert message.value.message == "Test <CENSORED> word"

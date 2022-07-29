@@ -20,12 +20,13 @@ class Chat(FloatLayout):
 class ChatWindow(BoxLayout):
     """ChatWindow rule"""
 
-    def add_message(self, message: str, sender: str = None) -> None:
+    def add_message(self, message: str, sender: str = None, propagate: bool = True) -> None:
         """Add message to chat window."""
         self.ids.chat_box.add_widget(
             Chat(message=message, sender=sender or self.wbs.manager.username)
         )
-        self.send_message(message)
+        if propagate:
+            self.send_message(message)
 
     def send_message(self, message: str) -> None:
         """Send message to server."""

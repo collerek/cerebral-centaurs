@@ -1,3 +1,4 @@
+import asyncio
 from functools import cached_property
 from typing import Any, Callable, Coroutine, Dict
 
@@ -14,6 +15,7 @@ class ChatController(BaseController):
 
     def __init__(self, manager: ConnectionManager):
         super().__init__(manager=manager)
+        self.turn_delay = 5
 
     @cached_property
     def dispatch_schema(
@@ -27,10 +29,13 @@ class ChatController(BaseController):
         user = self.manager.get_user(message.username)
         game = self.manager.get_game(game_id=message.game_id)
         current_turn = game.current_turn
+        if current_turn:
+            print("pass", current_turn.phrase.lower())
+            print("message", message.value.message.lower())
         if (
             current_turn
             and current_turn.phrase.lower() == message.value.message.lower()
-            and current_turn.drawer.username != message.username
+            and current_turn.drawer.username != message.value.sender
         ):
             game.win(user)
             won_message = Message(
@@ -55,8 +60,13 @@ class ChatController(BaseController):
                 game_id=won_message.game_id,
                 message=won_message,
             )
+            await self.wait_till_next_turn()
             game_controller = GameController(manager=self.manager)
             await game_controller.execute_turn(game=game, user=user)
+
+    async def wait_till_next_turn(self):  # pragma no cover
+        """Introduce delay between rounds."""
+        await asyncio.sleep(self.turn_delay)
 
     def censor_drawer(self, message: Message) -> Message:
         """Removes words from chat that are in the guess phrase."""
@@ -64,7 +74,10 @@ class ChatController(BaseController):
         game = self.manager.get_game(game_id=message.game_id)
         if game.current_turn and game.current_turn.drawer.username == user.username:
             tokens = [x.lower() for x in game.current_turn.phrase.split()]
-            censored = [x for x in message.value.message.split(" ") if x.lower() not in tokens]
+            censored = [
+                x if x.lower() not in tokens else "<CENSORED>"
+                for x in message.value.message.split(" ")
+            ]
             message.value.message = " ".join(censored)
         return message
 

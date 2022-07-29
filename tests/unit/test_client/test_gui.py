@@ -2,6 +2,7 @@ import json
 
 import pytest
 from kivy.base import EventLoop
+from kivy.factory import Factory
 from kivy.graphics import Line, Rectangle
 from kivy.tests.common import GraphicUnitTest, UnitTestTouch
 from kivy.uix.modalview import ModalView
@@ -12,15 +13,18 @@ from codejam.client.widgets.chatwindow import Chat
 from codejam.client.widgets.drawcanvas import Tools
 from codejam.server.interfaces.chat_message import ChatMessage
 from codejam.server.interfaces.error_message import ErrorMessage
-from codejam.server.interfaces.game_message import GameMessage
+from codejam.server.interfaces.game_message import GameMessage, TurnMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.picture_message import LineData, PictureMessage, RectData
 from codejam.server.interfaces.topics import (
-    ChatOperations, DrawOperations,
+    ChatOperations,
+    DrawOperations,
     ErrorOperations,
-    GameOperations, Topic,
+    GameOperations,
+    Topic,
     TopicEnum,
 )
+from codejam.server.models.phrase_generator import PhraseDifficulty
 
 
 @pytest.fixture(scope="class")
@@ -98,8 +102,52 @@ def game_creation_message() -> Message:
     return Message(
         topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
         username=root_widget.username,
-        game_id="newID",
+        game_id=root_widget.game_id,
         value=GameMessage(success=True, game_id="newID"),
+    )
+
+
+@pytest.fixture(scope="class")
+def game_turn_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.TURN),
+        username=root_widget.username,
+        game_id=root_widget.game_id,
+        value=GameMessage(
+            success=True,
+            game_id=root_widget.game_id,
+            turn=TurnMessage(
+                turn_no=1,
+                active=True,
+                drawer=root_widget.username,
+                duration=30,
+                level=PhraseDifficulty.MEDIUM,
+                score={root_widget.username: 100},
+                phrase="Dummy",
+            ),
+        ),
+    )
+
+
+@pytest.fixture(scope="class")
+def game_win_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.WIN),
+        username=root_widget.username,
+        game_id=root_widget.game_id,
+        value=GameMessage(
+            success=True,
+            game_id=root_widget.game_id,
+            turn=TurnMessage(
+                turn_no=1,
+                active=True,
+                winner=root_widget.username,
+                duration=30,
+                level=PhraseDifficulty.MEDIUM,
+                score={root_widget.username: 100},
+                phrase="Dummy",
+            ),
+        ),
     )
 
 
@@ -112,7 +160,9 @@ def test_data(
     test_frame: Message,
     test_chat_message: Message,
     game_start_message: Message,
-    game_creation_message: Message
+    game_creation_message: Message,
+    game_turn_message: Message,
+    game_win_message: Message,
 ) -> None:
     request.cls.test_error = test_error
     request.cls.test_rectangle = test_rectangle
@@ -121,10 +171,33 @@ def test_data(
     request.cls.test_message = test_chat_message
     request.cls.game_start_message = game_start_message
     request.cls.game_create_message = game_creation_message
+    request.cls.game_turn_message = game_turn_message
+    request.cls.game_win_message = game_win_message
 
 
 @pytest.mark.usefixtures("test_data")
 class BasicDrawingTestCase(GraphicUnitTest):
+    def test_restarting_game(self, *args):
+        EventLoop.ensure_window()
+        self._win = EventLoop.window
+
+        self.root = root_widget
+        self.root.can_draw = True
+        self.render(self.root)
+        self.root.transition = NoTransition()
+        self.root.ws = True
+        self.root.create_room = True
+        self.root.current = "whiteboard"
+        wb_screen = self.root.current_screen
+        self.advance_frames(1)
+        wb_screen.start_game()
+        self.root.current = "menu_screen"
+        print("re-enter")
+        self.advance_frames(2)
+        self.root.current = "whiteboard"
+        self.advance_frames(2)
+        assert "lobby" in self.root.ids
+        assert isinstance(self.root.ids["lobby"], Factory.Lobby)
 
     def test_adding_chat_message(self, *args):
         EventLoop.ensure_window()
@@ -177,6 +250,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         self._win = EventLoop.window
 
         self.root = root_widget
+        self.root.can_draw = True
         self.render(self.root)
         self.root.transition = NoTransition()
         self.root.ws = True
@@ -203,7 +277,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
                     "line": expected_line,
                     "colour": colour,
                     "width": 2,
-                }
+                },
             },
         }
         self.advance_frames(2)
@@ -216,6 +290,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         self._win = EventLoop.window
 
         self.root = root_widget
+        self.root.can_draw = True
         self.render(self.root)
         self.root.transition = NoTransition()
         self.root.ws = True
@@ -242,7 +317,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
                     "line": self.test_frame.value.data.line,
                     "colour": colour,
                     "width": 2,
-                }
+                },
             },
         }
         self.advance_frames(2)
@@ -255,6 +330,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         self._win = EventLoop.window
 
         self.root = root_widget
+        self.root.can_draw = True
         self.render(self.root)
         self.root.transition = NoTransition()
         self.root.ws = True
@@ -280,7 +356,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
                     "colour": colour,
                     "pos": self.test_rectangle.value.data.pos,
                     "size": self.test_rectangle.value.data.size,
-                }
+                },
             },
         }
         self.advance_frames(2)
@@ -409,6 +485,49 @@ class BasicDrawingTestCase(GraphicUnitTest):
         popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
         assert popup.title == self.test_error.value.exception
         assert popup.message == self.test_error.value.value
+
+        popup.dismiss()
+        self.advance_frames(1)
+
+        self.render(self.root_widget)
+        self.assertLess(len(self._win.children), 2)
+
+    def test_playing_turn(self, *args):
+        EventLoop.ensure_window()
+        self._win = EventLoop.window
+
+        self.root_widget = root_widget
+        self.render(self.root_widget)
+        wb_screen = self.root_widget.get_screen("whiteboard")
+
+        wb_screen.wb.received = self.game_turn_message.json()
+        assert json.loads(wb_screen.wb.btn_text) == self.game_turn_message.dict()
+
+        popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
+        assert popup.title == "Now is your turn to draw!"
+        assert popup.message == "You have 30 seconds to draw!"
+
+        popup.dismiss()
+        self.advance_frames(1)
+
+        self.render(self.root_widget)
+        self.assertLess(len(self._win.children), 2)
+
+    def test_winning_turn(self, *args):
+        EventLoop.ensure_window()
+        self._win = EventLoop.window
+
+        self.root_widget = root_widget
+        self.render(self.root_widget)
+        wb_screen = self.root_widget.get_screen("whiteboard")
+
+        wb_screen.wb.received = self.game_win_message.json()
+        assert json.loads(wb_screen.wb.btn_text) == self.game_win_message.dict()
+
+        popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
+        assert popup.header == "You WON!"
+        assert popup.message == self.game_win_message.value.turn.phrase
+        assert popup.additional_message == "Next turn will start in 5 seconds!"
 
         popup.dismiss()
         self.advance_frames(1)
