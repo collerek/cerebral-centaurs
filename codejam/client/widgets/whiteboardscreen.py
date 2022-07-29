@@ -30,10 +30,10 @@ class WhiteBoardScreen(Screen):
     """WhiteBoardScreen"""
 
     lobby_widget = ObjectProperty(None)
-    btn_text = StringProperty("WebSocket Connected")
     layout = ObjectProperty(None)
     message = StringProperty("")
-    received = StringProperty("")
+    received = StringProperty("WebSocket Connected")
+    received_raw = StringProperty("")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -116,14 +116,14 @@ class WhiteBoardScreen(Screen):
 
     def on_received(self, instance: Widget, value: str) -> None:
         """Called when received message"""
-        self.btn_text = value
+        self.received_raw = value
         parsed = Message(**json.loads(value))
         callback = self.callbacks[cast(str, parsed.topic.type)][parsed.topic.operation]
         callback(parsed)
 
     def chat_say(self, message: Message) -> None:
         """Chat message from other clients"""
-        if message.username != self.parent.parent.username:
+        if message.username != self.manager.username:
             self.ids.chat_window.add_message(**message.value.dict(), propagate=False)
 
     def draw_line(self, message: Message) -> None:
@@ -142,21 +142,21 @@ class WhiteBoardScreen(Screen):
 
     def game_create(self, message: Message) -> None:
         """Create game message from other clients"""
-        self.parent.game_id = message.value.game_id
+        self.manager.game_id = message.value.game_id
 
     def game_join(self, message: Message) -> None:
         """Join game message from other clients"""
 
     def game_start(self, message: Message) -> None:
         """Start game message from other clients"""
-        self.parent.game_active = True
+        self.manager.game_active = True
 
     def play_turn(self, message: Message):
         """Play a game turn."""
         self.cvs.canvas.clear()
         drawer = message.value.turn.drawer
-        client = self.parent.parent.username
-        self.parent.parent.can_draw = drawer == client
+        client = self.manager.username
+        self.manager.can_draw = drawer == client
         drawing_person = "your" if client == drawer else drawer
         phrase = message.value.turn.phrase if client == drawer else ""
         action = "draw" if client == drawer else "guess"
@@ -170,7 +170,7 @@ class WhiteBoardScreen(Screen):
     def update_score(self, message: Message):
         """Display winner."""
         winner = message.value.turn.winner
-        client = self.parent.parent.username
+        client = self.manager.username
         header = "You WON!" if client == winner else f"Player {message.value.turn.winner} WON!"
         self.display_popup(
             header=header,
@@ -181,7 +181,7 @@ class WhiteBoardScreen(Screen):
 
     def display_error(self, message: Message) -> None:
         """Display error modal."""
-        self.parent.parent.current = "menu_screen"
+        self.manager.current = "menu_screen"
         self.display_popup(
             header="Error encountered!",
             title=message.value.exception,
