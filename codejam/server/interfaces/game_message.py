@@ -1,9 +1,8 @@
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
 from codejam.server.models.phrase_generator import PhraseDifficulty
-from codejam.server.models.user import User
 
 
 class TurnMessage(BaseModel):
