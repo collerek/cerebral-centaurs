@@ -13,6 +13,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.widget import Widget
 from websockets.exceptions import ConnectionClosedError
 
+from codejam import logger
 from codejam.client.events_handlers import EventHandler
 from codejam.client.events_handlers.utils import display_popup
 from codejam.server.interfaces.game_message import GameMessage
@@ -189,12 +190,12 @@ class WhiteBoardScreen(EventHandler):
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
         url = self.url.format(self.manager.username)
-        print(url)
+        logger.debug(url)
         async with websockets.connect(url) as websocket:
             while True:
                 if m := self.message:
                     self.message = ""
-                    print("sending " + m)
+                    logger.debug("sending " + m)
                     await websocket.send(m)
                 try:
                     self.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)

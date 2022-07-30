@@ -169,7 +169,6 @@ class GameTestCase(GraphicUnitTest):
         self.advance_frames(1)
         wb_screen.start_game()
         self.root.current = "menu_screen"
-        print("re-enter")
         self.advance_frames(2)
         self.root.current = "whiteboard"
         self.advance_frames(2)
