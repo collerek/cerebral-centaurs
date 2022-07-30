@@ -9,8 +9,8 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import root_widget
-from codejam.client.widgets.chatwindow import Chat
-from codejam.client.widgets.drawcanvas import Tools
+from codejam.client.widgets.chat_window import Chat
+from codejam.client.widgets.draw_canvas import Tools
 from codejam.server.interfaces.chat_message import ChatMessage
 from codejam.server.interfaces.error_message import ErrorMessage
 from codejam.server.interfaces.game_message import GameMessage, TurnMessage
@@ -221,7 +221,7 @@ class BasicDrawingTestCase(GraphicUnitTest):
         touch.touch_down()
         touch.touch_up()
 
-        assert json.loads(wb_screen.wb.message) == {
+        assert json.loads(wb_screen.message) == {
             "topic": self.test_message.topic.dict(),
             "username": self.test_message.username,
             "game_id": self.test_message.game_id,
@@ -267,12 +267,12 @@ class BasicDrawingTestCase(GraphicUnitTest):
         touch.touch_up()
         colour = canvas.colour
         expected_line = [200.0, 200.0, 100.0, 100.0]
-        assert json.loads(wb_screen.wb.message) == {
+        assert json.loads(wb_screen.message) == {
             "topic": self.test_line.topic.dict(),
             "username": self.test_line.username,
-            "game_id": self.test_line.game_id,
+            "game_id": root_widget.game_id,
             "value": {
-                "draw_id": json.loads(wb_screen.wb.message)["value"]["draw_id"],
+                "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
                 "data": {
                     "line": expected_line,
                     "colour": colour,
@@ -307,12 +307,12 @@ class BasicDrawingTestCase(GraphicUnitTest):
         touch.touch_move(x=50, y=20)
         touch.touch_up()
         colour = canvas.colour
-        assert json.loads(wb_screen.wb.message) == {
+        assert json.loads(wb_screen.message) == {
             "topic": self.test_frame.topic.dict(),
             "username": self.test_frame.username,
-            "game_id": self.test_frame.game_id,
+            "game_id": root_widget.game_id,
             "value": {
-                "draw_id": json.loads(wb_screen.wb.message)["value"]["draw_id"],
+                "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
                 "data": {
                     "line": self.test_frame.value.data.line,
                     "colour": colour,
@@ -346,12 +346,12 @@ class BasicDrawingTestCase(GraphicUnitTest):
         touch.touch_move(x=100, y=100)
         touch.touch_up()
         colour = canvas.colour
-        assert json.loads(wb_screen.wb.message) == {
+        assert json.loads(wb_screen.message) == {
             "topic": self.test_rectangle.topic.dict(),
             "username": self.test_rectangle.username,
-            "game_id": self.test_rectangle.game_id,
+            "game_id": root_widget.game_id,
             "value": {
-                "draw_id": json.loads(wb_screen.wb.message)["value"]["draw_id"],
+                "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
                 "data": {
                     "colour": colour,
                     "pos": self.test_rectangle.value.data.pos,
@@ -377,8 +377,8 @@ class BasicDrawingTestCase(GraphicUnitTest):
         incoming_message = self.test_message.copy(deep=True)
         incoming_message.username = "New user"
         incoming_message.value.message = "Websocket message"
-        wb_screen.wb.received = incoming_message.json()
-        assert json.loads(wb_screen.wb.btn_text) == incoming_message.dict()
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
 
         self.advance_frames(2)
         first_message = wb_screen.ids.chat_window.ids.chat_box.children[0]
@@ -392,11 +392,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
         wb_screen = self.root_widget.get_screen("whiteboard")
 
         incoming_message = self.game_create_message.copy(deep=True)
-        wb_screen.wb.received = incoming_message.json()
-        assert json.loads(wb_screen.wb.btn_text) == incoming_message.dict()
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
 
         self.advance_frames(2)
-        assert wb_screen.game_id == incoming_message.value.game_id
+        assert wb_screen.manager.game_id == incoming_message.value.game_id
 
     def test_starting_game_from_websocket(self, *args):
         self.root_widget = root_widget
@@ -404,11 +404,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
         wb_screen = self.root_widget.get_screen("whiteboard")
 
         incoming_message = self.game_start_message.copy(deep=True)
-        wb_screen.wb.received = incoming_message.json()
-        assert json.loads(wb_screen.wb.btn_text) == incoming_message.dict()
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
 
         self.advance_frames(2)
-        assert wb_screen.game_active
+        assert wb_screen.manager.game_active
 
     def test_drawing_line_from_websocket(self, *args):
         EventLoop.ensure_window()
@@ -420,11 +420,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         incoming_line = self.test_line.copy(deep=True)
         incoming_line.username = "New user"
-        wb_screen.wb.received = incoming_line.json()
-        assert json.loads(wb_screen.wb.btn_text) == incoming_line.dict()
+        wb_screen.received = incoming_line.json()
+        assert json.loads(wb_screen.received_raw) == incoming_line.dict()
 
         draw_id = incoming_line.value.draw_id
-        line = getattr(wb_screen.wb.ids, draw_id)
+        line = getattr(wb_screen.ids, draw_id)
         assert line.points == incoming_line.value.data.line
 
         self.render(self.root_widget)
@@ -440,11 +440,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         incoming_rectangle = self.test_rectangle.copy(deep=True)
         incoming_rectangle.username = "New user"
-        wb_screen.wb.received = incoming_rectangle.json()
-        assert json.loads(wb_screen.wb.btn_text) == incoming_rectangle.dict()
+        wb_screen.received = incoming_rectangle.json()
+        assert json.loads(wb_screen.received_raw) == incoming_rectangle.dict()
 
         draw_id = incoming_rectangle.value.draw_id
-        rect = getattr(wb_screen.wb.ids, draw_id)
+        rect = getattr(wb_screen.ids, draw_id)
         assert list(rect.pos) == incoming_rectangle.value.data.pos
         assert list(rect.size) == incoming_rectangle.value.data.size
 
@@ -461,11 +461,11 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         incoming_line = self.test_frame.copy(deep=True)
         incoming_line.username = "New user"
-        wb_screen.wb.received = incoming_line.json()
-        assert json.loads(wb_screen.wb.btn_text) == incoming_line.dict()
+        wb_screen.received = incoming_line.json()
+        assert json.loads(wb_screen.received_raw) == incoming_line.dict()
 
         draw_id = incoming_line.value.draw_id
-        line = getattr(wb_screen.wb.ids, draw_id)
+        line = getattr(wb_screen.ids, draw_id)
         assert line.points == incoming_line.value.data.line
 
         self.render(self.root_widget)
@@ -479,8 +479,8 @@ class BasicDrawingTestCase(GraphicUnitTest):
         self.render(self.root_widget)
         wb_screen = self.root_widget.get_screen("whiteboard")
 
-        wb_screen.wb.received = self.test_error.json()
-        assert json.loads(wb_screen.wb.btn_text) == self.test_error.dict()
+        wb_screen.received = self.test_error.json()
+        assert json.loads(wb_screen.received_raw) == self.test_error.dict()
 
         popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
         assert popup.title == self.test_error.value.exception
@@ -500,8 +500,8 @@ class BasicDrawingTestCase(GraphicUnitTest):
         self.render(self.root_widget)
         wb_screen = self.root_widget.get_screen("whiteboard")
 
-        wb_screen.wb.received = self.game_turn_message.json()
-        assert json.loads(wb_screen.wb.btn_text) == self.game_turn_message.dict()
+        wb_screen.received = self.game_turn_message.json()
+        assert json.loads(wb_screen.received_raw) == self.game_turn_message.dict()
 
         popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
         assert popup.title == "Now is your turn to draw!"
@@ -512,6 +512,8 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         popup.dismiss()
         self.advance_frames(1)
+        assert wb_screen.ids.counter.text != "WAITING FOR START"
+        assert int(wb_screen.ids.counter.text) <= 60
 
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
@@ -524,8 +526,8 @@ class BasicDrawingTestCase(GraphicUnitTest):
         self.render(self.root_widget)
         wb_screen = self.root_widget.get_screen("whiteboard")
 
-        wb_screen.wb.received = self.game_win_message.json()
-        assert json.loads(wb_screen.wb.btn_text) == self.game_win_message.dict()
+        wb_screen.received = self.game_win_message.json()
+        assert json.loads(wb_screen.received_raw) == self.game_win_message.dict()
 
         popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
         assert popup.header == "You WON!"

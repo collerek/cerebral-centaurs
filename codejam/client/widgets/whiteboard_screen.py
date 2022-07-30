@@ -1,20 +1,30 @@
 import asyncio
+import pathlib
 
 import websockets
 from kivy.factory import Factory
-from kivy.uix.screenmanager import Screen
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 
+from codejam.client.events_handlers import EventHandler
+from codejam.client.events_handlers.utils import display_popup
 from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import GameOperations, Topic, TopicEnum
 
 
-class WhiteBoardScreen(Screen):
+class WhiteBoardScreen(EventHandler):
     """WhiteBoardScreen"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.lobby_widget = None
+        self.url = "ws://127.0.0.1:8000/ws/{0}"
+
+    lobby_widget = ObjectProperty(None)
+    layout = ObjectProperty(None)
+    message = StringProperty("")
 
     def task_callback(self, task: asyncio.Task):
         """Used to handle exceptions inside websocket task."""
@@ -24,7 +34,7 @@ class WhiteBoardScreen(Screen):
             pass  # Task cancellation should not be treated as an error.
         except ConnectionRefusedError as e:
             self.reset_websocket()
-            self.wb.display_popup(
+            display_popup(
                 header="Error encountered!",
                 title=e.__class__.__name__,
                 message=str(e),
@@ -33,7 +43,7 @@ class WhiteBoardScreen(Screen):
             )
         except Exception:
             self.reset_websocket()
-            self.wb.display_popup(
+            display_popup(
                 header="Unexpected error encountered!",
                 title="Unexpected server error",
                 message="Please contact administrators.",
@@ -63,19 +73,19 @@ class WhiteBoardScreen(Screen):
                 self.add_widget(lobby)
                 self.manager.ids["lobby"] = lobby
             """Create new room"""
-            self.wb.message = self._prepare_message(
+            self.message = self._prepare_message(
                 operation=GameOperations.CREATE, include_difficulty=True
             ).json(models_as_dict=True)
         else:
             """Join existing room"""
             self.remove_lobby()
-            self.wb.message = self._prepare_message(operation=GameOperations.JOIN).json(
+            self.message = self._prepare_message(operation=GameOperations.JOIN).json(
                 models_as_dict=True
             )
 
     def start_game(self) -> None:
         """Start game"""
-        self.wb.message = self._prepare_message(operation=GameOperations.START).json(
+        self.message = self._prepare_message(operation=GameOperations.START).json(
             models_as_dict=True
         )
         self.remove_lobby()
@@ -87,6 +97,22 @@ class WhiteBoardScreen(Screen):
         # TODO: Write test for this path
         except ReferenceError:  # pragma: no cover
             pass
+
+    async def run_websocket(self) -> None:
+        """Runs the websocket client and send messages."""
+        url = self.url.format(self.manager.username)
+        print(url)
+        async with websockets.connect(url) as websocket:
+            while True:
+                if m := self.message:
+                    self.message = ""
+                    print("sending " + m)
+                    await websocket.send(m)
+                try:
+                    self.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)
+                except asyncio.exceptions.TimeoutError:
+                    continue
+                await asyncio.sleep(1 / 60)  # pragma: no cover
 
     def _prepare_message(
         self,
@@ -104,18 +130,27 @@ class WhiteBoardScreen(Screen):
             value=GameMessage(success=False, game_id=game_id, difficulty=difficulty),
         )
 
-    async def run_websocket(self) -> None:
-        """Runs the websocket client and send messages."""
-        url = "ws://127.0.0.1:8000/ws/{0}".format(self.manager.username)
-        print(url)
-        async with websockets.connect(url) as websocket:
-            while True:
-                if m := self.wb.message:
-                    self.wb.message = ""
-                    print("sending " + m)
-                    await websocket.send(m)
-                try:
-                    self.wb.received = await asyncio.wait_for(websocket.recv(), timeout=1 / 60)
-                except asyncio.exceptions.TimeoutError:
-                    continue
-                await asyncio.sleep(1 / 60)
+
+class Instructions(BoxLayout):
+    """Instructions rule"""
+
+    _canvas = ObjectProperty(None)
+
+
+class CanvasTools(BoxLayout):
+    """CanvasTools rule"""
+
+    ...
+
+
+class InfoPopup(ModalView):
+    """ErrorPopup"""
+
+    header = StringProperty("")
+    title = StringProperty("")
+    message = StringProperty("")
+    additional_message = StringProperty("")
+
+
+root_path = pathlib.Path(__file__).parent.resolve()
+Builder.load_file(f'{root_path.joinpath("whiteboard_screen.kv")}')

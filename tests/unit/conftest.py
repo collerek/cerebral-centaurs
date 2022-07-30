@@ -10,6 +10,7 @@ from codejam.server.interfaces.topics import (
     Topic,
     TopicEnum,
 )
+from tests.unit.test_client.mocks import WebsocketMock
 
 
 @pytest.fixture
@@ -112,3 +113,9 @@ def chat_message(test_client: str) -> Message:
         game_id=None,
         value=ChatMessage(sender=test_client, message="test_message"),
     )
+
+@pytest.fixture()
+def mocked_websockets(mocker):
+    web_socket_mock = WebsocketMock()
+    mocker.patch("codejam.client.widgets.whiteboard_screen.websockets", web_socket_mock)
+    return web_socket_mock
