@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -28,3 +28,4 @@ class GameMessage(BaseModel):
     game_id: str
     difficulty: Optional[str]
     turn: Optional[TurnMessage]
+    members: Optional[List[str]]

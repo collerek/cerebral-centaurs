@@ -42,6 +42,7 @@ class GameController(BaseController):
             GameOperations.CREATE.value: self.create_game,
             GameOperations.END.value: self.end_game,
             GameOperations.START.value: self.start_game,
+            GameOperations.MEMBERS.value: self.get_members,
             GameOperations.LEAVE.value: self.leave_game,
         }
 
@@ -132,14 +133,10 @@ class GameController(BaseController):
     async def create_game(self, message: Message):
         """Create a new game for a user."""
         user = self.manager.get_user(message.username)
-<<<<<<< HEAD
         difficulty = message.value.difficulty if hasattr(message.value, "difficulty") else None
         game_id = self.manager.register_game(
             creator=user, game_id=message.game_id, difficulty=difficulty
         )
-=======
-        game_id = self.manager.register_game(creator=user, game_id=message.game_id)
->>>>>>> 9c4b307 (client controlled game_id)
         self.manager.join_game(game_id=game_id, new_member=user)
         message = Message(
             topic=Topic(type=TopicEnum.GAME.value, operation=GameOperations.CREATE.value),
@@ -148,6 +145,20 @@ class GameController(BaseController):
             value=GameMessage(success=True, game_id=game_id, difficulty=difficulty),
         )
         await user.send_message(message=message)
+
+    def get_members(self, message: Message):
+        """Send all game members to user"""
+        user = self.manager.get_user(message.username)
+        return Message(
+            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.MEMBERS),
+            username=user.username,
+            game_id=message.game_id,
+            value=GameMessage(
+                success=True,
+                game_id=message.game_id,
+                members=self.manager.get_members(message.game_id),
+            ),
+        )
 
     async def join_game(self, message: Message):
         """Join existing game for a user."""
@@ -159,6 +170,8 @@ class GameController(BaseController):
             game_id=message.game_id,
             value=GameMessage(success=True, game_id=message.game_id),
         )
+        members_message = self.get_members(message)
+        await user.send_message(message=members_message)
         await self.manager.broadcast(game_id=message.game_id, message=message)
         await self.manager.fill_history(game_id=message.game_id, new_member=user)
         return message.game_id
