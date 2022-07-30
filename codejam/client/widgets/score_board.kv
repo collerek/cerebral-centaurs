@@ -26,16 +26,25 @@
 <ScoreBoard>:
     game_id: ''
     spacing: dp(10)
+    current_turn: 0
+    turns_no: 0
     orientation: 'vertical'
     BoxLayout:
-        Label:
-            id: game_label
-            text: root.game_id
+        GridLayout:
+            cols: 2
+            Label:
+                id: game_label
+                text: "Game: " + root.game_id
+                size_hint_x: 1
+            Label:
+                id: turns
+                text: str(root.current_turn) + " / " + str(root.turns_no)
+                size_hint_x: 1
         GridLayout:
             cols: 1
             id: scores
             pos_hint: {'right':.98, 'top':.5}
             size_hint: dp(1), 0.2
             height: self.minimum_height
-            spacing: '10dp'
-            padding: '10dp'
+            spacing: dp(1)
+            padding: dp(2)

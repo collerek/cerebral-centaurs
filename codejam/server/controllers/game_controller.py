@@ -42,7 +42,7 @@ class GameController(BaseController):
             GameOperations.CREATE.value: self.create_game,
             GameOperations.END.value: self.end_game,
             GameOperations.START.value: self.start_game,
-            GameOperations.MEMBERS.value: self.get_members,
+            GameOperations.LEAVE.value: self.leave_game,
         }
 
     async def start_game(self, message: Message):
@@ -66,7 +66,8 @@ class GameController(BaseController):
             current_turn = game.current_turn
             game.active_turn = asyncio.create_task(
                 delay_wrapper(
-                    delay=current_turn.duration, coro=self.execute_turn(game=game, user=user)
+                    delay=current_turn.duration,
+                    coro=self.execute_turn(game=game, user=user),
                 )
             )
         except NotEnoughPlayers as e:
@@ -110,6 +111,7 @@ class GameController(BaseController):
                 value=GameMessage(
                     success=True,
                     game_id=game.secret,
+                    game_length=game.game_length,
                     turn=TurnMessage(
                         turn_no=current_turn.turn_no,
                         level=current_turn.level,
@@ -133,44 +135,38 @@ class GameController(BaseController):
         """Create a new game for a user."""
         user = self.manager.get_user(message.username)
         difficulty = message.value.difficulty if hasattr(message.value, "difficulty") else None
-        game_id = self.manager.register_game(
+        game = self.manager.register_game(
             creator=user, game_id=message.game_id, difficulty=difficulty
         )
-        self.manager.join_game(game_id=game_id, new_member=user)
+        self.manager.join_game(game_id=game.secret, new_member=user)
         message = Message(
             topic=Topic(type=TopicEnum.GAME.value, operation=GameOperations.CREATE.value),
             username=user.username,
-            game_id=game_id,
-            value=GameMessage(success=True, game_id=game_id, difficulty=difficulty),
+            game_id=game.secret,
+            value=GameMessage(
+                success=True,
+                game_id=game.secret,
+                difficulty=difficulty,
+                game_length=game.game_length,
+            ),
         )
         await user.send_message(message=message)
 
-    def get_members(self, message: Message):
-        """Send all game members to user"""
+    async def join_game(self, message: Message):
+        """Join existing game for a user."""
         user = self.manager.get_user(message.username)
-        return Message(
-            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.MEMBERS),
+        game = self.manager.join_game(game_id=message.game_id, new_member=user)
+        message = Message(
+            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
             username=user.username,
             game_id=message.game_id,
             value=GameMessage(
                 success=True,
                 game_id=message.game_id,
+                game_length=game.game_length,
                 members=self.manager.get_members(message.game_id),
             ),
         )
-
-    async def join_game(self, message: Message):
-        """Join existing game for a user."""
-        user = self.manager.get_user(message.username)
-        self.manager.join_game(game_id=message.game_id, new_member=user)
-        message = Message(
-            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
-            username=user.username,
-            game_id=message.game_id,
-            value=GameMessage(success=True, game_id=message.game_id),
-        )
-        members_message = self.get_members(message)
-        await user.send_message(message=members_message)
         await self.manager.broadcast(game_id=message.game_id, message=message)
         await self.manager.fill_history(game_id=message.game_id, new_member=user)
         return message.game_id
@@ -185,7 +181,11 @@ class GameController(BaseController):
                 topic=Topic(type=TopicEnum.GAME, operation=GameOperations.LEAVE),
                 username=user.username,
                 game_id=message.game_id,
-                value=GameMessage(success=True, game_id=message.game_id),
+                value=GameMessage(
+                    success=True,
+                    game_id=message.game_id,
+                    members=self.manager.get_members(game_id=message.game_id),
+                ),
             )
             await self.manager.broadcast(game_id=message.game_id, message=message)
             try:

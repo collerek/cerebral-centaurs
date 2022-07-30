@@ -32,12 +32,12 @@ class ConnectionManager:
             raise UserNotExist(f"User with username: {username} does not exist!")
         return user
 
-    def register_game(self, creator: User, game_id: str = None, difficulty: str = None) -> str:
+    def register_game(self, creator: User, game_id: str = None, difficulty: str = None) -> Game:
         """Get game from active games."""
         game = Game(creator=creator, game_id=game_id, difficulty=difficulty)
         self.active_games[game.secret] = game
         creator.owned_games.append(game)
-        return game.secret
+        return game
 
     def get_game(self, game_id: str) -> Game:
         """Get game from active games."""
@@ -45,9 +45,11 @@ class ConnectionManager:
             raise GameNotExist(f"Game with id: {game_id} does not exist!")
         return self.active_games[game_id]
 
-    def join_game(self, game_id: str, new_member: User):
+    def join_game(self, game_id: str, new_member: User) -> Game:
         """Accepts the connections and stores it in a list"""
-        self.get_game(game_id=game_id).join(new_member=new_member)
+        game = self.get_game(game_id=game_id)
+        game.join(new_member=new_member)
+        return game
 
     def get_members(self, game_id: str) -> List[str]:
         """Get game members"""

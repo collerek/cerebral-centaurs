@@ -4,5 +4,5 @@ __all__ = [
     "whiteboard_tools",
     "whiteboard_screen",
     "counter",
-    "scoreboard",
+    "score_board",
 ]

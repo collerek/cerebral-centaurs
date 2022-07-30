@@ -27,5 +27,6 @@ class GameMessage(BaseModel):
     success: bool
     game_id: str
     difficulty: Optional[str]
+    game_length: Optional[int]
     turn: Optional[TurnMessage]
     members: Optional[List[str]]
