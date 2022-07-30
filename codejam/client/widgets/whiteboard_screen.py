@@ -1,12 +1,16 @@
 import asyncio
 import pathlib
+from typing import List, Union
 
 import websockets
+from kivy.animation import Animation
+from kivy.core.window import Window
 from kivy.factory import Factory
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import BooleanProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
+from kivy.uix.widget import Widget
 
 from codejam.client.events_handlers import EventHandler
 from codejam.client.events_handlers.utils import display_popup
@@ -82,6 +86,80 @@ class WhiteBoardScreen(EventHandler):
             self.message = self._prepare_message(operation=GameOperations.JOIN).json(
                 models_as_dict=True
             )
+
+    def on_enter(self) -> None:
+        """Called when the screen is shown."""
+        Window.bind(mouse_pos=self.mouse_pos)
+
+    def on_pre_leave(self) -> None:
+        """Called when the screen is about to be hidden."""
+        Window.unbind(mouse_pos=self.mouse_pos)
+
+    anim = None
+    top_enter = BooleanProperty(False)
+    left_enter = BooleanProperty(False)
+    right_enter = BooleanProperty(False)
+    bottom_enter = BooleanProperty(False)
+
+    def mouse_pos(self, window: Window, pos: List[Union[int, float]]) -> None:
+        """Handle mouse position."""
+        if pos[1] > Window.height * 0.9 and Window.width * 0.2 < pos[0] < Window.width * 0.8:
+            self.top_enter = True
+        elif pos[0] < Window.width * 0.2 and Window.height * 0.2 < pos[1] < Window.height * 0.8:
+            self.left_enter = True
+        elif pos[0] > Window.width * 0.7 and Window.height * 0.2 < pos[1] < Window.height * 0.8:
+            self.right_enter = True
+        elif pos[1] < Window.height * 0.2 and Window.width * 0.2 < pos[0] < Window.width * 0.8:
+            self.bottom_enter = True
+        else:
+            self.top_enter = False
+            self.left_enter = False
+            self.right_enter = False
+            self.bottom_enter = False
+
+    def on_top_enter(self, instance: Widget, value: bool):
+        """Handle top enter."""
+        if value:
+            self.anim = Animation(label_y=0.9, d=0.5)
+            self.anim.start(self)
+        else:
+            if self.anim:
+                self.anim.stop(self)
+            self.anim = Animation(label_y=1, d=0.5)
+            self.anim.start(self)
+
+    def on_left_enter(self, instance: Widget, value: bool):
+        """Handle left enter."""
+        if value:
+            self.anim = Animation(left_x=0.2, d=0.5)
+            self.anim.start(self)
+        else:
+            if self.anim:
+                self.anim.stop(self)
+            self.anim = Animation(left_x=0, d=0.5)
+            self.anim.start(self)
+
+    def on_right_enter(self, instance: Widget, value: bool):
+        """Handle right enter."""
+        if value:
+            self.anim = Animation(right_x=0.75, d=0.5)
+            self.anim.start(self)
+        else:
+            if self.anim:
+                self.anim.stop(self)
+            self.anim = Animation(right_x=0.95, d=0.5)
+            self.anim.start(self)
+
+    def on_bottom_enter(self, instance: Widget, value: bool):
+        """Handle bottom enter."""
+        if value:
+            self.anim = Animation(bottom_y=0.2, d=0.5)
+            self.anim.start(self)
+        else:
+            if self.anim:
+                self.anim.stop(self)
+            self.anim = Animation(bottom_y=0, d=0.5)
+            self.anim.start(self)
 
     def start_game(self) -> None:
         """Start game"""

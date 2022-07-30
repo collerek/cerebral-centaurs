@@ -3,7 +3,8 @@
     message: ''
     size_hint_y: None
     BoxLayout:
-        pos_hint: {'top': 1, 'left': 0 if root.parent and root.parent.username == root.sender else .25}
+        top: root.top
+        pos_hint: {'left': 0} if root.parent and root.parent.username == root.sender else {'right': 1}
         size_hint_x: .75
         canvas.before:
             Color:
@@ -45,13 +46,30 @@
     BoxLayout:
         orientation: 'vertical'
         size_hint_y: .3
+        spacing: dp(5)
         TextInput:
             id: message_input
             hint_text: 'Enter your message'
+            background_color: 0.2, 0.2, 0.2, 1
+            color: 1, 1, 1, 1
+            font_size: self.height * 0.3
+            pos_hint: {"x": .05}
+            size_hint: .9, .2
             text: ''
         Button:
             id: chat_button
             text: 'Send'
+            canvas.before:
+                Color:
+                    rgba: .2, .5, .9, 1
+                Line:
+                    width: 2
+                    rectangle: self.x, self.y, self.width, self.height
+            color: 0.2, 0.5, 0.9, 1
+            background_color: 0, 0, 0, 1
+            font_size: sp(20)
+            size_hint: .9, .2
+            pos_hint: {"x": .05}
             on_release:
                 root.add_message(message_input.text)
                 chat_scroll.scroll_y = 0

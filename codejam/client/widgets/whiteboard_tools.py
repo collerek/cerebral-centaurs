@@ -3,10 +3,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
 
 
-class WhiteBoard(BoxLayout):
-    """WhiteBoard"""
-
-
 class Instructions(BoxLayout):
     """Instructions rule"""
 
