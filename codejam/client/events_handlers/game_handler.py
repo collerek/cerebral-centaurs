@@ -68,6 +68,7 @@ class GameEventHandler(BaseEventHandler):
         winner = message.value.turn.winner
         client = self.manager.username
         self.ids.counter.cancel_animation()
+        self.ids.score_board.update_score(message=message)
         self.ids.counter.text = "WAITING FOR START"
         header = "You WON!" if client == winner else f"Player {message.value.turn.winner} WON!"
         display_popup(
