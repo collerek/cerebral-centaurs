@@ -43,7 +43,6 @@ class GameController(BaseController):
             GameOperations.END.value: self.end_game,
             GameOperations.START.value: self.start_game,
             GameOperations.MEMBERS.value: self.get_members,
-            GameOperations.LEAVE.value: self.leave_game,
         }
 
     async def start_game(self, message: Message):
@@ -197,20 +196,6 @@ class GameController(BaseController):
         else:
             game.active = False
             await self.end_game(message=message)
-
-    def get_members(self, message: Message):
-        """Send all game members to user"""
-        user = self.manager.get_user(message.username)
-        return Message(
-            topic=Topic(type=TopicEnum.GAME, operation=GameOperations.MEMBERS),
-            username=user.username,
-            game_id=message.game_id,
-            value=GameMessage(
-                success=True,
-                game_id=message.game_id,
-                members=self.manager.get_members(message.game_id),
-            ),
-        )
 
     async def end_game(self, message: Message):
         """End existing game by creator."""
