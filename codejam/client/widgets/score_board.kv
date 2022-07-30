@@ -1,0 +1,50 @@
+<Score>:
+    player: ''
+    score: 0
+    size_hint_y: None
+    BoxLayout:
+        pos_hint: {'top': 0.9, 'right': 1}
+        size_hint: 2.5, 0.2
+        canvas.before:
+            Color:
+                rgb: (0.5, 0.2, 0.9)
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+        orientation: 'horizontal'
+        Label:
+            font_size: sp(10)
+            text: root.player
+            text_size: self.width - dp(10), None
+            halign: 'left'
+        Label:
+            font_size: sp(15)
+            text: str(root.score)
+            text_size: self.width - dp(10), None
+            halign: 'right'
+
+<ScoreBoard>:
+    game_id: ''
+    spacing: dp(10)
+    current_turn: 0
+    turns_no: 0
+    orientation: 'vertical'
+    BoxLayout:
+        GridLayout:
+            cols: 2
+            Label:
+                id: game_label
+                text: "Game: " + root.game_id
+                size_hint_x: 1
+            Label:
+                id: turns
+                text: str(root.current_turn) + " / " + str(root.turns_no)
+                size_hint_x: 1
+        GridLayout:
+            cols: 1
+            id: scores
+            pos_hint: {'right':.98, 'top':.5}
+            size_hint: dp(1), 0.2
+            height: self.minimum_height
+            spacing: dp(1)
+            padding: dp(2)

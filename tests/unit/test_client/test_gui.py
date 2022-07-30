@@ -99,12 +99,36 @@ def game_start_message() -> Message:
 
 
 @pytest.fixture(scope="class")
+def game_join_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.JOIN),
+        username="second_user",
+        game_id=root_widget.game_id,
+        value=GameMessage(success=True, game_id=root_widget.game_id, members=[
+            root_widget.username, "second_user"
+        ], game_length=10),
+    )
+
+
+@pytest.fixture(scope="class")
+def game_leave_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.LEAVE),
+        username="second_user",
+        game_id=root_widget.game_id,
+        value=GameMessage(success=True, game_id=root_widget.game_id, members=[
+            root_widget.username
+        ]),
+    )
+
+
+@pytest.fixture(scope="class")
 def game_creation_message() -> Message:
     return Message(
         topic=Topic(type=TopicEnum.GAME, operation=GameOperations.CREATE),
         username=root_widget.username,
         game_id=root_widget.game_id,
-        value=GameMessage(success=True, game_id="newID"),
+        value=GameMessage(success=True, game_id="newID", game_length=5),
     )
 
 
@@ -170,10 +194,12 @@ def test_data(
     test_frame: Message,
     test_chat_message: Message,
     game_start_message: Message,
+    game_join_message: Message,
     game_creation_message: Message,
     game_turn_message: Message,
     game_win_message: Message,
-    test_trick_message: Message
+    test_trick_message: Message,
+    game_leave_message: Message
 ) -> None:
     request.cls.test_error = test_error
     request.cls.test_rectangle = test_rectangle
@@ -185,6 +211,8 @@ def test_data(
     request.cls.game_turn_message = game_turn_message
     request.cls.game_win_message = game_win_message
     request.cls.test_trick_message = test_trick_message
+    request.cls.game_join_message = game_join_message
+    request.cls.game_leave_message = game_leave_message
 
 
 @pytest.mark.usefixtures("test_data")
@@ -421,6 +449,25 @@ class BasicDrawingTestCase(GraphicUnitTest):
 
         self.advance_frames(2)
         assert wb_screen.manager.game_active
+
+    def test_joining_and_leaving_game_from_websocket(self, *args):
+        self.root_widget = root_widget
+        self.render(self.root_widget)
+        wb_screen = self.root_widget.get_screen("whiteboard")
+
+        incoming_message = self.game_join_message.copy(deep=True)
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
+
+        self.advance_frames(2)
+        assert len(wb_screen.ids.score_board.ids.scores.children) == 2
+
+        incoming_message = self.game_leave_message.copy(deep=True)
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
+
+        self.advance_frames(2)
+        assert len(wb_screen.ids.score_board.ids.scores.children) == 1
 
     def test_drawing_line_from_websocket(self, *args):
         EventLoop.ensure_window()

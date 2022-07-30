@@ -40,7 +40,7 @@ async def test_websockets(
     if attributes:
         for key, value in attributes.items():
             setattr(mocked_websockets, key, value)
-    screen = WhiteBoardScreen(manager=mocker.Mock(username=root_widget.username))
+    screen = WhiteBoardScreen(manager=mocker.Mock(username=root_widget.username, game_id=root_widget.game_id))
     message = "test message"
     screen.message = message
     if mocked_websockets.refuse_connection:
