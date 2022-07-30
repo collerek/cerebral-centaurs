@@ -28,3 +28,4 @@ class GameMessage(BaseModel):
     game_id: str
     difficulty: Optional[str]
     turn: Optional[TurnMessage]
+    turns: Optional[int]

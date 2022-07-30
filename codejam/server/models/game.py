@@ -48,6 +48,7 @@ class Game:
         self.turns_history: List[Turn] = []
         self.active = False
         self.active_turn: Optional[Task] = None
+        self.active_trick: Optional[Task] = None
         self.difficulty = difficulty
         self.game_length = self.get_number_of_turns()
 
@@ -83,7 +84,10 @@ class Game:
     def win(self, winner: User) -> None:
         """Set current turn as won by winner. Cancel scheduled turn change."""
         self.current_turn.winner = winner
-        self.active_turn.cancel()
+        if self.active_turn:
+            self.active_turn.cancel()
+        if self.active_trick:
+            self.active_trick.cancel()
 
     def check_if_game_has_enough_players(self) -> None:
         """Check if minimum number of players is filled."""

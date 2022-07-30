@@ -20,6 +20,8 @@ class ErrorEventHandler(BaseEventHandler):
     def display_error(self, message: Message) -> None:
         """Display error modal."""
         self.manager.current = "menu_screen"
+        self.ids.counter.cancel_animation()
+        self.ids.counter.text = "WAITING FOR START"
         display_popup(
             header="Error encountered!",
             title=message.value.exception,

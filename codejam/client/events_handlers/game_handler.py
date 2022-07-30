@@ -17,6 +17,7 @@ class GameEventHandler(BaseEventHandler):
             GameOperations.START.value: self.game_start,
             GameOperations.TURN.value: self.play_turn,
             GameOperations.WIN.value: self.update_score,
+            GameOperations.END.value: self.game_end,
         }
         self.callbacks[TopicEnum.GAME.value] = self.game_callbacks
 
@@ -62,4 +63,20 @@ class GameEventHandler(BaseEventHandler):
             title="The phrase guessed was:",
             message=message.value.turn.phrase,
             additional_message="Next turn will start in 5 seconds!",
+        )
+
+    def game_end(self, message: Message):
+        """Handle game end event."""
+        self.manager.current = "menu_screen"
+        self.ids.counter.cancel_animation()
+        self.ids.counter.text = "WAITING FOR START"
+        score = message.value.turn.score
+        max_score = max(score.values())
+        winners = [u for u in score if score[u] == max_score]
+        title = "The winner is:" if len(winners) == 1 else "Draw! The winners are:"
+        display_popup(
+            header="GAME END!",
+            title=title,
+            message=", ".join(winners),
+            additional_message="",
         )

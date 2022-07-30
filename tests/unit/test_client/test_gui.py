@@ -22,8 +22,9 @@ from codejam.server.interfaces.topics import (
     ErrorOperations,
     GameOperations,
     Topic,
-    TopicEnum,
+    TopicEnum, TrickOperations,
 )
+from codejam.server.interfaces.trick_message import TrickMessage
 from codejam.server.models.phrase_generator import PhraseDifficulty
 
 
@@ -150,6 +151,15 @@ def game_win_message() -> Message:
         ),
     )
 
+@pytest.fixture(scope="class")
+def test_trick_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.TRICK, operation=TrickOperations.NOTHING),
+        username="Dirty Goblin",
+        game_id=root_widget.game_id,
+        value=TrickMessage(game_id=root_widget.game_id, description="Test trick"),
+    )
+
 
 @pytest.fixture(scope="class")
 def test_data(
@@ -163,6 +173,7 @@ def test_data(
     game_creation_message: Message,
     game_turn_message: Message,
     game_win_message: Message,
+    test_trick_message: Message
 ) -> None:
     request.cls.test_error = test_error
     request.cls.test_rectangle = test_rectangle
@@ -173,6 +184,7 @@ def test_data(
     request.cls.game_create_message = game_creation_message
     request.cls.game_turn_message = game_turn_message
     request.cls.game_win_message = game_win_message
+    request.cls.test_trick_message = test_trick_message
 
 
 @pytest.mark.usefixtures("test_data")
@@ -485,6 +497,27 @@ class BasicDrawingTestCase(GraphicUnitTest):
         popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
         assert popup.title == self.test_error.value.exception
         assert popup.message == self.test_error.value.value
+
+        popup.dismiss()
+        self.advance_frames(1)
+
+        self.render(self.root_widget)
+        self.assertLess(len(self._win.children), 2)
+
+    def test_trick_nothing(self, *args):
+        EventLoop.ensure_window()
+        self._win = EventLoop.window
+
+        self.root_widget = root_widget
+        self.render(self.root_widget)
+        wb_screen = self.root_widget.get_screen("whiteboard")
+
+        wb_screen.received = self.test_trick_message.json()
+        assert json.loads(wb_screen.received_raw) == self.test_trick_message.dict()
+
+        popup = next((x for x in self._win.children if isinstance(x, ModalView)), None)
+        assert popup.title == self.test_trick_message.topic.operation
+        assert popup.message == self.test_trick_message.value.description
 
         popup.dismiss()
         self.advance_frames(1)
