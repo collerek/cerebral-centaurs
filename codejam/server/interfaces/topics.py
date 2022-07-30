@@ -23,6 +23,7 @@ class GameOperations(Enum):
     START = "START"
     TURN = "TURN"
     WIN = "WIN"
+    MEMBERS = "MEMBERS"
 
 
 class DrawOperations(Enum):
