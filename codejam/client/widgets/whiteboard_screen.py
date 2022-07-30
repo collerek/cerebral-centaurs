@@ -48,7 +48,7 @@ class WhiteBoardScreen(EventHandler):
             )
         except ConnectionClosedError as e:
             self.reset_websocket()
-            self.wb.display_popup(
+            display_popup(
                 header="Connection lost",
                 title="You've been disconnected from the server",
                 message="Error: " + str(e),
