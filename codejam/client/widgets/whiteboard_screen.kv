@@ -7,7 +7,7 @@
             size: self.size
 
 <CButton@ButtonBehavior+Label>:
-    colour: .2, .5, .9
+    colour: (.5, .2, .9) if self.state == 'down' else (.2, .5, .9)
     background_color: 0, 0, 0, 1
     font_size: sp(15)
     canvas.before:
@@ -209,11 +209,25 @@
     message: "Error Message"
     header: "Error encountered!"
     BoxLayout:
-        size_hint: None, None
+        spacing: dp(5)
+        padding: dp(10)
         orientation: "vertical"
+        canvas.before:
+            Color:
+                rgb: .5, .2, .9, 1
+            Line:
+                width: 4
+                rectangle: self.x + 2, self.y + 2, self.width - 2, self.height - 2
         Label:
             text: root.header
         Widget:
+            size_hint_y: .1
+            canvas:
+                Color:
+                    rgb: .5, .2, .9, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
         Label:
             text: root.title
             halign: "left"
@@ -223,6 +237,7 @@
         Label:
             text: root.additional_message
             halign: "left"
-        Button:
+        CButton:
+            color: .2, .5, .9
             text: "Close"
             on_release: root.dismiss()
