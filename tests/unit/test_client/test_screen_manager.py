@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import pytest
+import websockets.exceptions
 from kivy.lang import Builder
 
 from codejam.client.client import main_full_path
@@ -79,6 +80,15 @@ async def test_task_raises_cancel_error_handler(mocker):
     root_widget.create_room = False
     task = mocker.AsyncMock(
         result=mocker.MagicMock(side_effect=[asyncio.CancelledError()])
+    )
+    root_widget.ids.wbs.task_callback(task)
+
+@pytest.mark.asyncio
+async def test_task_raises_websocket_connection_closed_error_handler(mocker):
+    root_widget = Builder.load_file(f"{main_full_path}")
+    root_widget.create_room = False
+    task = mocker.AsyncMock(
+        result=mocker.MagicMock(side_effect=[websockets.exceptions.ConnectionClosedError(rcvd=None, sent=None)])
     )
     root_widget.ids.wbs.task_callback(task)
 

@@ -11,6 +11,7 @@ from kivy.properties import BooleanProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
 from kivy.uix.widget import Widget
+from websockets.exceptions import ConnectionClosedError
 
 from codejam.client.events_handlers import EventHandler
 from codejam.client.events_handlers.utils import display_popup
@@ -42,6 +43,15 @@ class WhiteBoardScreen(EventHandler):
                 header="Error encountered!",
                 title=e.__class__.__name__,
                 message=str(e),
+                additional_message="Check your server and internet connections.",
+                auto_dismiss=False,
+            )
+        except ConnectionClosedError as e:
+            self.reset_websocket()
+            display_popup(
+                header="Connection lost",
+                title="You've been disconnected from the server",
+                message="Error: " + str(e),
                 additional_message="Check your server and internet connections.",
                 auto_dismiss=False,
             )
