@@ -7,7 +7,7 @@
             size: self.size
 
 <CButton@ButtonBehavior+Label>:
-    colour: .2, .5, .9
+    colour: .2, .5, .9 if self.state == 'down' else .5, .2, .9
     background_color: 0, 0, 0, 1
     font_size: sp(15)
     canvas.before:
