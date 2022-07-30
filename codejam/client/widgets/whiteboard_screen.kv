@@ -202,18 +202,33 @@
 
 <InfoPopup>:
     auto_dismiss: False
-    size_hint: 0.6, 0.2
+    size_hint: 0.6, 0.3
     pos_hint: {"x": 0.2 ,"top": 0.9}
     title: "Error Title"
     additional_message: "Error Code"
     message: "Error Message"
     header: "Error encountered!"
     BoxLayout:
-        size_hint: None, None
+        spacing: dp(10)
+        padding: dp(15)
+        #size_hint: None, None
         orientation: "vertical"
+        canvas.before:
+            Color:
+                rgb: .5, .2, .9, 1
+            Line:
+                width: 4
+                rectangle: self.x + 2, self.y + 2, self.width - 2, self.height - 2
         Label:
             text: root.header
         Widget:
+            size_hint_y: .1
+            canvas:
+                Color:
+                    rgb: .5, .2, .9, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
         Label:
             text: root.title
             halign: "left"
@@ -223,6 +238,13 @@
         Label:
             text: root.additional_message
             halign: "left"
-        Button:
+        CButton:
+            color: .2, .5, .9
+            canvas.before:
+                Color:
+                    rgba: .2, .5, .9, 1
+                Line:
+                    width: 2
+                    rectangle: self.x, self.y, self.width, self.height
             text: "Close"
             on_release: root.dismiss()
