@@ -4,7 +4,7 @@ from asyncio import Task
 from random import choices
 from typing import Dict, List, Optional
 
-from codejam.server.exceptions import NotEnoughPlayers
+from codejam.server.exceptions import GameEnded, NotEnoughPlayers
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import TopicEnum
 from codejam.server.models.phrase_generator import PhraseDifficulty, PhraseGenerator
@@ -49,6 +49,7 @@ class Game:
         self.active = False
         self.active_turn: Optional[Task] = None
         self.difficulty = difficulty
+        self.game_length = self.get_number_of_turns()
 
         self._last_phrase: str = ""
         self._last_drawer: Optional[User] = None
@@ -68,28 +69,38 @@ class Game:
             score[player.username] = 0
 
         for turn in self.turns_history:
-            if turn.winner is not None:
-                print(turn.winner.username)
+            if turn.winner is not None and turn.winner.username in score:
                 score[turn.winner.username] = score[turn.winner.username] + self.winner_scores.get(
                     turn.level
                 )
         return score
 
     @property
-    def difficulty_level(self):
+    def difficulty_level(self) -> PhraseDifficulty:
         """Return set or default difficulty level."""
         return PhraseDifficulty(self.difficulty) if self.difficulty else PhraseDifficulty.MEDIUM
 
-    def win(self, winner: User):
+    def win(self, winner: User) -> None:
         """Set current turn as won by winner. Cancel scheduled turn change."""
         self.current_turn.winner = winner
         self.active_turn.cancel()
 
-    def turn(self):
-        """Advances turn to the next one."""
+    def check_if_game_has_enough_players(self) -> None:
+        """Check if minimum number of players is filled."""
         if len(self.members) < 3:
             raise NotEnoughPlayers("The game needs at least 3 players!")
+
+    @staticmethod
+    def get_number_of_turns() -> int:
+        """Get game length as random int 3-15."""
+        return random.randint(3, 15)
+
+    def turn(self) -> None:
+        """Advances turn to the next one."""
+        self.check_if_game_has_enough_players()
         self.current_turn_no += 1
+        if self.current_turn_no > self.game_length:
+            raise GameEnded()
         new_turn = Turn(
             turn_no=self.current_turn_no,
             drawer=self.get_next_drawer(),
@@ -134,4 +145,6 @@ class Game:
 
     def leave(self, member: User):
         """Accept the new player and store it in a list"""
-        self.members.remove(member)
+        self.score.pop(member.username, None)
+        if member in self.members:
+            self.members.remove(member)
