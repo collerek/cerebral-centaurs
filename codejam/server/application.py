@@ -4,6 +4,7 @@ import pydantic
 from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketDisconnect
 
+from codejam import logger
 from codejam.server.connection_manager import ConnectionManager
 from codejam.server.controllers.chat_controller import ChatController
 from codejam.server.controllers.draw_controller import DrawController
@@ -23,7 +24,7 @@ manager = ConnectionManager()
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
     """Websocket Endpoint"""
-    print("Accepting client connection...")
+    logger.info("Accepting client connection...")
     user = User(username=username, websocket=websocket)
     game_id = None
     await manager.connect(user=user)
@@ -36,7 +37,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
         while True:
             try:
                 data = await websocket.receive_json()
-                print("received: " + str(data))
+                logger.debug("received: " + str(data))
                 message = Message(**data)
                 game_id = message.game_id
                 controller = controllers[cast(str, message.topic.type)]

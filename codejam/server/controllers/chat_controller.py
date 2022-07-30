@@ -29,9 +29,6 @@ class ChatController(BaseController):
         user = self.manager.get_user(message.username)
         game = self.manager.get_game(game_id=message.game_id)
         current_turn = game.current_turn
-        if current_turn:
-            print("pass", current_turn.phrase.lower())
-            print("message", message.value.message.lower())
         if (
             current_turn
             and current_turn.phrase.lower() == message.value.message.lower()
