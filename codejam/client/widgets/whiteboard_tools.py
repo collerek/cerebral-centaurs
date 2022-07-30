@@ -1,5 +1,6 @@
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.modalview import ModalView
 
 
@@ -9,7 +10,7 @@ class Instructions(BoxLayout):
     _canvas = ObjectProperty(None)
 
 
-class CanvasTools(BoxLayout):
+class CanvasTools(GridLayout):
     """CanvasTools rule"""
 
     ...
