@@ -1,26 +1,25 @@
 <Score>:
     player: ''
     score: 0
-    size_hint_y: None
     BoxLayout:
         pos_hint: {'top': 0.9, 'right': 1}
-        size_hint: 2.5, 0.2
         canvas.before:
             Color:
                 rgb: (0.5, 0.2, 0.9)
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
-        orientation: 'horizontal'
         Label:
             font_size: sp(10)
             text: root.player
             text_size: self.width - dp(10), None
+            height: self.texture_size[1]
             halign: 'left'
         Label:
             font_size: sp(15)
             text: str(root.score)
             text_size: self.width - dp(10), None
+            height: self.texture_size[1]
             halign: 'right'
 
 <ScoreBoard>:
@@ -30,21 +29,29 @@
     turns_no: 0
     orientation: 'vertical'
     BoxLayout:
-        GridLayout:
-            cols: 2
-            Label:
-                id: game_label
-                text: "Game: " + root.game_id
-                size_hint_x: 1
-            Label:
-                id: turns
-                text: str(root.current_turn) + " / " + str(root.turns_no)
-                size_hint_x: 1
-        GridLayout:
-            cols: 1
-            id: scores
-            pos_hint: {'right':.98, 'top':.5}
-            size_hint: dp(1), 0.2
-            height: self.minimum_height
-            spacing: dp(1)
-            padding: dp(2)
+        size_hint_y: .2
+        padding: dp(5)
+        canvas.before:
+            Color:
+                rgb: .2, .5, .9
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+        Label:
+            id: game_label
+            text_size: self.width, None
+            halign: 'left'
+            text: f"Game: {root.game_id}"
+        Label:
+            id: turns
+            text_size: self.width, None
+            size_hint_x: .3
+            halign: 'center'
+            text: f"{root.current_turn} / {root.turns_no}"
+    GridLayout:
+        orientation: 'tb-lr'
+        rows: 8
+        id: scores
+        height: self.minimum_height
+        spacing: dp(1)
+        padding: dp(2)

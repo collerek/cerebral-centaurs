@@ -6,9 +6,10 @@
         top: root.top
         pos_hint: {'left': 0} if root.parent and root.parent.username == root.sender else {'right': 1}
         size_hint_x: .75
+        rectangle_colour: (0.5, 0.2, 0.9) if root.parent and root.parent.username == root.sender else (0.2, 0.5, 0.9)
         canvas.before:
             Color:
-                rgb: (0.5, 0.2, 0.9) if root.parent and root.parent.username == root.sender else (0.2, 0.5, 0.9)
+                rgb: self.rectangle_colour or (0, 0, 0)
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
@@ -37,8 +38,8 @@
             id: chat_box
             size_hint_y: None
             height: self.minimum_height
-            spacing: '10dp'
-            padding: '10dp'
+            spacing: dp(5)
+            padding: dp(5)
 
     BoxLayout:
         orientation: 'vertical'
@@ -48,7 +49,7 @@
             id: message_input
             hint_text: 'Enter your message'
             background_color: 0.2, 0.2, 0.2, 1
-            color: 1, 1, 1, 1
+            foreground_color: .5, .2, .9
             font_size: self.height * 0.3
             pos_hint: {"x": .05}
             size_hint: .9, .2

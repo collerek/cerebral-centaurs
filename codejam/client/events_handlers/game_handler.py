@@ -25,14 +25,14 @@ class GameEventHandler(BaseEventHandler):
     def game_create(self, message: Message) -> None:
         """Create game message from other clients"""
         self.manager.game_id = message.value.game_id
-        self.manager.ids.wbs.ids.score_board.add_joining_player(player=message.username)
-        self.manager.ids.wbs.ids.score_board.turns_no = message.value.game_length
+        self.ids.score_board.add_joining_player(player=message.username)
+        self.ids.score_board.turns_no = message.value.game_length
 
     def game_join(self, message: Message) -> None:
         """Join game message from other clients"""
-        self.manager.ids.wbs.ids.score_board.turns_no = message.value.game_length
+        self.ids.score_board.turns_no = message.value.game_length
         for member in message.value.members:
-            self.manager.ids.wbs.ids.score_board.add_joining_player(player=member)
+            self.ids.score_board.add_joining_player(player=member)
 
     def game_start(self, message: Message) -> None:
         """Start game message from other clients"""
@@ -44,8 +44,8 @@ class GameEventHandler(BaseEventHandler):
         drawer = message.value.turn.drawer
         client = self.manager.username
         duration = message.value.turn.duration
-        self.manager.ids.wbs.ids.score_board.update_score(message=message)
-        self.manager.ids.wbs.ids.score_board.current_turn = message.value.turn.turn_no
+        self.ids.score_board.update_score(message=message)
+        self.ids.score_board.current_turn = message.value.turn.turn_no
         self.ids.counter.a = duration
         self.ids.counter.start()
         self.manager.can_draw = drawer == client
@@ -62,7 +62,7 @@ class GameEventHandler(BaseEventHandler):
     def leave_game(self, message: Message):
         """Handle leaving players, remove them from score board."""
         members = message.value.members
-        self.manager.ids.wbs.ids.score_board.rebuild_score(players=members)
+        self.ids.score_board.rebuild_score(players=members)
 
     def update_score(self, message: Message):
         """Display winner."""
