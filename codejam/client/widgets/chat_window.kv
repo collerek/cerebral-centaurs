@@ -54,6 +54,8 @@
             pos_hint: {"x": .05}
             size_hint: .9, .2
             text: ''
+            multiline: False
+            on_text_validate: chat_button.trigger_action(.1)
         Button:
             id: chat_button
             text: 'Send'

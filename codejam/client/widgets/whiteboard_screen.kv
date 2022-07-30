@@ -80,16 +80,18 @@
         id: score_board
         game_id: root.manager.game_id
         pos_hint: {'right':.98, 'top':.98}
-        size_hint: .2, .38
-        opacity: .25 if chat_window.x < self.center_x else 1
+        size_hint: .22, .38
+        screen: root
+        username: root.manager.username
+        opacity: .1 if chat_window.x < self.center_x else 1
     ChatWindow:
         id: chat_window
-        username: root.manager.username
         screen: root
+        username: root.manager.username
         size_hint: .25, .6
         pos_hint: {'x': root.right_x, 'center_y': .5}
         orientation: 'vertical'
-        opacity: .75
+        opacity: .9
     Counter:
         id: counter
         size_hint_y: .1
