@@ -3,7 +3,8 @@
     message: ''
     size_hint_y: None
     BoxLayout:
-        pos_hint: {'top': 1, 'left': 0 if root.parent and root.parent.username == root.sender else .25}
+        top: root.top
+        pos_hint: {'left': 0} if root.parent and root.parent.username == root.sender else {'right': 1}
         size_hint_x: .75
         canvas.before:
             Color:
