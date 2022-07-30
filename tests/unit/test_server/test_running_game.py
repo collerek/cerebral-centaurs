@@ -368,14 +368,7 @@ def test_leaving_game_by_creator(
     game_start_message: Message,
     game_leave_message: Message
 ):
-    async def dummy_delay_wrapper(delay: int, coro: Coroutine):
-        await asyncio.sleep(1)
-        await coro
 
-    mocker.patch(
-        "codejam.server.controllers.game_controller.delay_wrapper",
-        dummy_delay_wrapper
-    )
     mocker.patch(
         "codejam.server.controllers.chat_controller.ChatController.wait_till_next_turn",
         mocker.AsyncMock()
