@@ -1,3 +1,4 @@
+#:import A kivy.animation.Animation
 <CLabel@Label>:
     canvas.before:
         Color:
@@ -51,12 +52,20 @@
         size: 400, 400
         draw_mark: .1, .2, .3
         line_width: 2
+        angle: 0
         canvas.before:
+            PushMatrix
+            Rotate:
+                angle: self.angle
+                axis: 0, 0, 1
+                origin: self.center
             Color:
                 hsv: self.draw_mark or (.1, .2, .3)
             Rectangle:
                 pos: self.x + self.offset_x, self.y + self.offset_y
                 size: self.size
+        canvas.after:
+            PopMatrix
     CLabel:
         id: label
         size_hint_y: .1
@@ -163,50 +172,56 @@
 <CanvasTools>:
     padding: dp(5)
     spacing: dp(5)
-    BoxLayout:
-        spacing: dp(5)
-        orientation: 'vertical'
-        CButton:
-            text: 'inc width'
-            on_release:
-                root._canvas.width += 5
-        CButton:
-            text: 'dec width'
-            on_release:
-                root._canvas.width -= 5
-    BoxLayout:
-        spacing: dp(5)
-        orientation: 'vertical'
-        CButton:
-            text: 'inc height'
-            on_release:
-                root._canvas.height += 10
-        CButton:
-            text: 'dec height'
-            on_release:
-                root._canvas.height -= 10
-    BoxLayout:
-        spacing: dp(5)
-        orientation: 'vertical'
-        CButton:
-            text: 'right'
-            on_release:
-                root._canvas.offset_x += 10
-        CButton:
-            text: 'left'
-            on_release:
-                root._canvas.offset_x -= 10
-    BoxLayout:
-        spacing: dp(5)
-        orientation: 'vertical'
-        CButton:
-            text: 'up'
-            on_release:
-                root._canvas.offset_y += 10
-        CButton:
-            text: 'down'
-            on_release:
-                root._canvas.offset_y -= 10
+    orientation: 'tb-lr'
+    rows: 2
+    CButton:
+        text: 'inc width'
+        on_release:
+            root._canvas.width += 5
+    CButton:
+        text: 'dec width'
+        on_release:
+            root._canvas.width -= 5
+    CButton:
+        text: 'inc height'
+        on_release:
+            root._canvas.height += 10
+    CButton:
+        text: 'dec height'
+        on_release:
+            root._canvas.height -= 10
+    CButton:
+        text: 'right'
+        on_release:
+            root._canvas.offset_x += 10
+    CButton:
+        text: 'left'
+        on_release:
+            root._canvas.offset_x -= 10
+    CButton:
+        text: 'up'
+        on_release:
+            root._canvas.offset_y += 10
+    CButton:
+        text: 'down'
+        on_release:
+            root._canvas.offset_y -= 10
+    CButton:
+        text: '- rotate'
+        on_release:
+            root._canvas.angle += 15
+    CButton:
+        text: '+ rotate'
+        on_release:
+            root._canvas.angle -= 15
+    CButton:
+        text: '- rot anim'
+        on_release:
+            A(angle=720, d=10).start(root._canvas)
+    CButton:
+        text: '+ rot anim'
+        on_release:
+            A(angle=0, d=10).start(root._canvas)
 
 <InfoPopup>:
     auto_dismiss: False
