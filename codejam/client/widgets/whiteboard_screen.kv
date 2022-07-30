@@ -57,7 +57,7 @@
             Rectangle:
                 pos: self.x + self.offset_x, self.y + self.offset_y
                 size: self.size
-    CLabel
+    CLabel:
         id: label
         size_hint_y: .1
         pos_hint: {'y': root.label_y}
@@ -76,6 +76,12 @@
         _canvas: canvas
         size_hint: .2, .6
         pos_hint: {'right': root.left_x, 'center_y': .5}
+    ScoreBoard:
+        id: score_board
+        game_id: root.manager.game_id
+        pos_hint: {'right':.98, 'top':.98}
+        size_hint: .2, .38
+        opacity: .25 if chat_window.x < self.center_x else 1
     ChatWindow:
         id: chat_window
         username: root.manager.username
@@ -89,14 +95,8 @@
         size_hint_y: .1
         pos_hint: {'top': .95, 'center_x': .5}
         text: "WAITING FOR START"
-        color: .5, .9, .2
+        color: .5, .2, .9
         font_size: dp(20)
-    ScoreBoard:
-        id: score_board
-        game_id: root.manager.game_id
-        wbs: root
-        pos_hint: {'right':.98, 'top':1.1}
-        size_hint: .2, .3
 
 
 <Instructions>:
