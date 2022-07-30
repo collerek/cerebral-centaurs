@@ -106,6 +106,15 @@ def game_start_message(test_client: str) -> Message:
     )
 
 @pytest.fixture
+def game_leave_message(test_client: str) -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.LEAVE),
+        username=test_client,
+        game_id=None,
+        value=None,
+    )
+
+@pytest.fixture
 def chat_message(test_client: str) -> Message:
     return Message(
         topic=Topic(type=TopicEnum.CHAT, operation=ChatOperations.SAY),

@@ -6,6 +6,10 @@ class GameNotStarted(WhiteBoardException):
     """Raised when user try to draw before joining a game."""
 
 
+class GameAlreadyStarted(WhiteBoardException):
+    """Raised when user try to draw before joining a game."""
+
+
 class NotAllowedOperation(WhiteBoardException):
     """Raised when user try to draw before joining a game."""
 
