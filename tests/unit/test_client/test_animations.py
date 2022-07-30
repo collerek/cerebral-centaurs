@@ -24,7 +24,7 @@ class AnimationTestCase(GraphicUnitTest):
         canvas.pos = (0, 0)
 
         self._win.mouse_pos = [self._win.width/2, self._win.height * 0.98]
-        self.advance_frames(45)
+        self.advance_frames(50)
         self.render(self.root)
         assert wb_screen.top_enter
         assert wb_screen.label_y == 0.9
