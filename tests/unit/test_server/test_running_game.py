@@ -263,7 +263,7 @@ def test_leaving_game_by_player(
     game_leave_message: Message
 ):
     async def dummy_delay_wrapper(delay: int, coro: Coroutine):
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
         await coro
 
     mocker.patch(
