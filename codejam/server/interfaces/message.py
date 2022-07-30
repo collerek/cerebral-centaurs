@@ -7,6 +7,7 @@ from codejam.server.interfaces.error_message import ErrorMessage
 from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.picture_message import PictureMessage
 from codejam.server.interfaces.topics import Topic, TopicEnum
+from codejam.server.interfaces.trick_message import TrickMessage
 
 
 class Message(BaseModel):
@@ -15,7 +16,7 @@ class Message(BaseModel):
     topic: Topic
     username: str
     game_id: Optional[str]
-    value: Optional[Union[PictureMessage, GameMessage, ChatMessage, ErrorMessage]]
+    value: Optional[Union[PictureMessage, GameMessage, ChatMessage, ErrorMessage, TrickMessage]]
 
     @validator("value")
     def operation_match_type(cls, v, values, **kwargs):
@@ -25,6 +26,7 @@ class Message(BaseModel):
             TopicEnum.DRAW.value: PictureMessage,
             TopicEnum.CHAT.value: ChatMessage,
             TopicEnum.ERROR.value: ErrorMessage,
+            TopicEnum.TRICK.value: TrickMessage,
         }
         topic = values.get("topic")
         if topic is None:

@@ -60,7 +60,7 @@ class WhiteBoardScreen(EventHandler):
             self.reset_websocket()
             display_popup(
                 header="Unexpected error encountered!",
-                title="Unexpected server error",
+                title="Unexpected error",
                 message="Please contact administrators.",
                 additional_message="",
                 auto_dismiss=False,
