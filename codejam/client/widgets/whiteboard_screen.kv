@@ -7,12 +7,21 @@
             size: self.size
 
 <CButton@ButtonBehavior+Label>:
+    colour: .2, .5, .9
     canvas.before:
         Color:
-            rgb: .5, .2, .9
+            rgb: self.colour or (0, 0, 0)
         RoundedRectangle:
             pos: self.pos
             size: self.size
+
+<ToolButton@CButton>:
+    colour: (.5, .2, .9) if self.parent.pressed == self else (.2, .5, .9)
+    on_release:
+        self.parent.pressed = self
+        self.parent.root._canvas.tool = self.text
+        self.parent.root._canvas.line_width = self.parent.root.ids.slider.value
+        self.parent.root._canvas.colour = self.parent.root.ids.color_picker.value, 1, 1
 
 <WhiteBoardScreen>:
     id: wbs
@@ -117,29 +126,24 @@
             on_value: root._canvas.line_width = self.value
     GridLayout:
         cols: 2
+        id: tools
         spacing: dp(5)
         padding: dp(5)
-        CButton:
+        pressed: None
+        root: root
+        ToolButton:
             text: 'line'
-            on_release:
-                root._canvas.line_width = 2
-                root._canvas.tool = 'line'
-                root._canvas.colour = color_picker.value, 1, 1
-        CButton:
+        ToolButton:
             text: 'rect'
-            on_release:
-                root._canvas.line_width = 2
-                root._canvas.tool = 'rect'
-                root._canvas.colour = color_picker.value, 1, 1
-        CButton:
+        ToolButton:
             text: 'frame'
-            on_release:
-                root._canvas.line_width = 2
-                root._canvas.tool = 'frame'
-                root._canvas.colour = color_picker.value, 1, 1
     CButton:
         text: 'eraser'
+        active: False
+        colour: (.5, .2, .9) if tools.pressed == self else (.2, .5, .9)
         on_release:
+            self.active = not self.active
+            tools.pressed = self
             root._canvas.line_width = 10
             root._canvas.tool = 'line'
             root._canvas.colour = root._canvas.draw_mark
