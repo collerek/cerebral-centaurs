@@ -14,6 +14,7 @@ from codejam.server.interfaces.error_message import ErrorMessage
 from codejam.server.interfaces.game_message import GameMessage, TurnMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import ErrorOperations, GameOperations, Topic, TopicEnum
+from codejam.server.models.tricks_generator import TrickGenerator
 
 if TYPE_CHECKING:  # pragma: no cover
     from codejam.server.models.game import Game
@@ -70,6 +71,7 @@ class GameController(BaseController):
                     coro=self.execute_turn(game=game, user=user),
                 )
             )
+            game.active_trick = asyncio.create_task(TrickGenerator(game=game).release_the_kraken())
         except NotEnoughPlayers as e:
             game.active = False
             message = Message(
@@ -88,6 +90,7 @@ class GameController(BaseController):
                 value=GameMessage(
                     success=True,
                     game_id=game.secret,
+                    game_length=game.game_length,
                     turn=TurnMessage(
                         turn_no=game.current_turn.turn_no,
                         level=game.difficulty_level,
