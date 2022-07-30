@@ -100,7 +100,6 @@ class WhiteBoardScreen(EventHandler):
     left_enter = BooleanProperty(False)
     right_enter = BooleanProperty(False)
     bottom_enter = BooleanProperty(False)
-    right_enter = BooleanProperty(False)
 
     def mouse_pos(self, window: Window, pos: List[Union[int, float]]) -> None:
         """Handle mouse position."""

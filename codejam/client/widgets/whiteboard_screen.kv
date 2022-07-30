@@ -10,9 +10,11 @@
     canvas.before:
         Color:
             rgb: .5, .2, .9
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
+        Line:
+            width: 2
+            rectangle: self.x, self.y, self.width, self.height
+    background_color: 0, 0, 0, 1
+    font_size: sp(15)
 
 <WhiteBoardScreen>:
     id: wbs
@@ -88,6 +90,7 @@
     padding: dp(5)
     Widget:
         id: color_picker
+        size_hint: 1, 0.3
         value: 0
         canvas.before:
             Color:
@@ -100,8 +103,9 @@
             self.value = args[1].x/self.right if self.collide_point(*args[1].pos) else self.value # *can bug*
     BoxLayout:
         orientation: 'vertical'
+        size_hint_y: 0.3
         Label:
-            text: str(slider.value)
+            text: "Line width: " + str(slider.value)
         Slider:
             id: slider
             opacity: 1
@@ -116,7 +120,7 @@
             step: 1
             on_value: root._canvas.line_width = self.value
     GridLayout:
-        cols: 2
+        cols: 1
         spacing: dp(5)
         padding: dp(5)
         CButton:
@@ -137,12 +141,12 @@
                 root._canvas.line_width = 2
                 root._canvas.tool = 'frame'
                 root._canvas.colour = color_picker.value, 1, 1
-    CButton:
-        text: 'eraser'
-        on_release:
-            root._canvas.line_width = 10
-            root._canvas.tool = 'line'
-            root._canvas.colour = root._canvas.draw_mark
+        CButton:
+            text: 'eraser'
+            on_release:
+                root._canvas.line_width = 10
+                root._canvas.tool = 'line'
+                root._canvas.colour = root._canvas.draw_mark
 
 <CanvasTools>:
     padding: dp(5)

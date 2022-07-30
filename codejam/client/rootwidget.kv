@@ -78,5 +78,14 @@ RootWidget:
         Lobby:
             id: lobby
             LobbyButton:
+                canvas.before:
+                    Color:
+                        rgba: .2, .5, .9, 1
+                    Line:
+                        width: 5
+                        rectangle: self.x, self.y, self.width, self.height
+                color: 0.2, 0.5, 0.9, 1
+                background_color: 0, 0, 0, 1
+                font_size: sp(30)
                 on_release:
                     wbs.start_game()
