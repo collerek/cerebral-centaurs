@@ -51,12 +51,20 @@
         size: 400, 400
         draw_mark: .1, .2, .3
         line_width: 2
+        angle: 0
         canvas.before:
+            PushMatrix
+            Rotate:
+                angle: self.angle
+                axis: 0, 0, 1
+                origin: self.center
             Color:
                 hsv: self.draw_mark or (.1, .2, .3)
             Rectangle:
                 pos: self.x + self.offset_x, self.y + self.offset_y
                 size: self.size
+        canvas.after:
+            PopMatrix
     CLabel:
         id: label
         size_hint_y: .1

@@ -1,3 +1,4 @@
+from random import choice
 from typing import Callable, Dict, cast
 
 from kivy.animation import Animation
@@ -50,6 +51,15 @@ class TrickEventHandler(BaseEventHandler):
     def landslide(self, message: Message) -> None:
         """Landslide trick handler"""
         self.display_message(message=message)
+        Animation.cancel_all(self.cvs)
+        offset = choice([150, -150])
+        angles = {150: -30, -150: 30}
+        angle = angles[offset]
+        step_duration = 0.5
+        self.current_trick = Animation(
+            offset_x=offset, offset_y=-200, angle=angle, duration=step_duration
+        )
+        self.current_trick.start(self.cvs)
 
     def packman(self, message: Message) -> None:
         """Handle packman trick"""

@@ -91,6 +91,9 @@ class TricksTestCase(GraphicUnitTest):
         self.render(self.root_widget)
         wb_screen = self.root_widget.get_screen("whiteboard")
 
+        initial_offset_x = wb_screen.cvs.offset_x
+        initial_offset_y = wb_screen.cvs.offset_y
+
         incoming_message = self.test_trick_message.copy(deep=True)
         incoming_message.topic.operation = TrickOperations.LANDSLIDE
         wb_screen.received = incoming_message.json()
@@ -105,6 +108,20 @@ class TricksTestCase(GraphicUnitTest):
 
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
+        self.advance_frames(50)
+
+        assert wb_screen.cvs.offset_x != initial_offset_x
+        assert wb_screen.cvs.offset_y != initial_offset_y
+        assert wb_screen.cvs.angle != 0
+
+        incoming_message = self.game_turn_message.copy(deep=True)
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
+
+        assert not wb_screen.current_trick._widgets
+        assert wb_screen.cvs.offset_x == initial_offset_x
+        assert wb_screen.cvs.offset_y == initial_offset_y
+        assert wb_screen.cvs.angle == 0
 
     def test_trick_pacman(self, *args):
         EventLoop.ensure_window()
@@ -163,6 +180,9 @@ class TricksTestCase(GraphicUnitTest):
         assert json.loads(wb_screen.received_raw) == incoming_message.dict()
 
         assert not wb_screen.current_trick._widgets
+        assert wb_screen.cvs.offset_x == initial_offset_x
+        assert wb_screen.cvs.offset_y == initial_offset_y
+        assert wb_screen.cvs.angle == 0
 
     def test_trick_snail(self, *args):
         EventLoop.ensure_window()
