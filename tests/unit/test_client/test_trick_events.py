@@ -168,7 +168,7 @@ class TricksTestCase(GraphicUnitTest):
                 },
             },
         }
-        wb_screen.current_trick.cancel()
+        wb_screen.cancel_trick()
         self.advance_frames(300)
 
     def test_trick_earthquake(self, *args):
@@ -238,11 +238,13 @@ class TricksTestCase(GraphicUnitTest):
         self.root.ws = True
         self.root.current = "whiteboard"
         wb_screen = self.root.current_screen
+        wb_screen.message = ""
         self.advance_frames(1)
 
         canvas = wb_screen.ids.canvas
         canvas.pos = (0, 0)
         canvas.tool = Tools.LINE.value
+        assert wb_screen.snail_active
         touch = UnitTestTouch(x=300, y=300)
         touch.touch_down()
         touch.touch_move(x=200, y=200)
@@ -251,8 +253,9 @@ class TricksTestCase(GraphicUnitTest):
         time.sleep(1)
         touch.touch_move(x=250, y=250)
         touch.touch_up()
-        self.advance_frames(1)
-
+        self.advance_frames(50)
+        self.render(self.root)
+        assert wb_screen.snail_active
         colour = canvas.colour
         expected_line = [300.0, 300.0, 200.0, 200.0, 250.0, 250.0]
         assert json.loads(wb_screen.message) == {
