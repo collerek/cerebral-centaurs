@@ -1,4 +1,5 @@
 #:import pd codejam.server.models.phrase_generator.PhraseDifficulty
+#:import ascii string.ascii_lowercase
 
 <Lobby@RelativeLayout>
 
@@ -14,34 +15,32 @@
     pos_hint: {"x": 0.3, "y": 0.4}
     size_hint: 0.4, 0.2
 
+<LoginInput@TextInput>:
+    background_color: 0.2, 0.2, 0.2, 1
+    font_size: self.height * 0.6
+    multiline: False
+    input_filter: lambda text, _: text if text.lower() in ascii else ''
+
 RootWidget:
     ws: False
     MenuScreen:
         id: menu_screen
         name: 'menu_screen'
         RelativeLayout:
-            TextInput:
-                id: username
-                background_color: 0.2, 0.2, 0.2, 1
-                font_size: self.height * 0.6
-                pos_hint: {"x": .25, "y": .8}
-                size_hint: .45, .09
-                hint_text: 'username'
-                multiline: False
-            TextInput:
-                id: game_selection
-                background_color: 0.2, 0.2, 0.2, 1
-                font_size: self.height * 0.6
-                pos_hint: {"x": .25, "y": .7}
-                size_hint: .45, .09
-                hint_text: 'entry code'
-                multiline: False
-            Spinner:
-                id: difficulty
-                pos_hint: {"x": .25, "y": .6}
-                size_hint: .45, .09
-                values: pd.list()
-                text: pd.default()
+            BoxLayout:
+                pos_hint: {"center_x": .5, "center_y": .7}
+                size_hint: .45, .27
+                orientation: 'vertical'
+                LoginInput:
+                    id: username
+                    hint_text: 'username'
+                LoginInput:
+                    id: game_selection
+                    hint_text: 'entry code'
+                Spinner:
+                    id: difficulty
+                    values: pd.list()
+                    text: pd.default()
         GameButton:
             canvas.before:
                 Color:
