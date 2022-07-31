@@ -1,7 +1,7 @@
 import json
 from typing import Dict, cast
 
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
@@ -14,6 +14,8 @@ class BaseEventHandler(Screen):
     received = StringProperty("")
     received_raw = StringProperty("")
     current_trick = ObjectProperty()
+    canvas_initial_offset_x = NumericProperty()
+    canvas_initial_offset_y = NumericProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

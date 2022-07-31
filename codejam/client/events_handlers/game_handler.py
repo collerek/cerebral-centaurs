@@ -24,6 +24,9 @@ class GameEventHandler(BaseEventHandler):
 
     def cancel_trick(self):
         """Cancel current trick if it's applied"""
+        self.cvs.offset_x = self.canvas_initial_offset_x
+        self.cvs.offset_y = self.canvas_initial_offset_y
+        self.cvs.angle = 0
         if self.current_trick:
             self.current_trick.cancel(self.cvs)
 

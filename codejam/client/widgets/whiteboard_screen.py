@@ -78,6 +78,8 @@ class WhiteBoardScreen(EventHandler):
 
     def on_pre_enter(self) -> None:
         """Called when the screen is about to be shown."""
+        self.canvas_initial_offset_x = self.cvs.offset_x
+        self.canvas_initial_offset_y = self.cvs.offset_y
         if not self.manager.ws:
             websocket_task = asyncio.create_task(self.run_websocket())
             websocket_task.add_done_callback(self.task_callback)
