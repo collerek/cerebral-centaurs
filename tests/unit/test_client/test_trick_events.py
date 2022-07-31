@@ -258,7 +258,6 @@ class TricksTestCase(GraphicUnitTest):
         assert wb_screen.snail_active
         colour = canvas.colour
         expected_line = [300.0, 300.0, 200.0, 200.0, 250.0, 250.0]
-        print(wb_screen.message)
         assert json.loads(wb_screen.message) == {
             "topic": Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
             "username": root_widget.username,

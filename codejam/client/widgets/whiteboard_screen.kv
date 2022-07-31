@@ -70,15 +70,17 @@
             PopMatrix
     CLabel:
         id: label
-        size_hint_y: .1
+        size_hint_y: dp(0)
+        size_hint_x: dp(0)
         pos_hint: {'y': root.label_y}
         color: .5, .9, .2
-        font_size: dp(10)
+        font_size: dp(0)
         text_size: self.width, None
         texture_size: self.size
         halign: 'center'
         text: root.received
         hidden: True
+        opacity: 0
     Instructions:
         _canvas: canvas
         size_hint: .2, .6
