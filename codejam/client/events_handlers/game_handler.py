@@ -27,6 +27,7 @@ class GameEventHandler(BaseEventHandler):
         self.cvs.offset_x = self.canvas_initial_offset_x
         self.cvs.offset_y = self.canvas_initial_offset_y
         self.cvs.angle = 0
+        self.snail_active = False
         if self.current_trick:
             self.current_trick.cancel(self.cvs)
 

@@ -1,15 +1,18 @@
 import json
+import time
 
 import pytest
 from kivy.base import EventLoop
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, UnitTestTouch
 from kivy.uix.modalview import ModalView
+from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import root_widget
+from codejam.client.widgets.draw_canvas import Tools
 from codejam.server.interfaces.game_message import GameMessage, TurnMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import (
-    GameOperations, Topic,
+    DrawOperations, GameOperations, Topic,
     TopicEnum, TrickOperations,
 )
 from codejam.server.interfaces.trick_message import TrickMessage
@@ -204,5 +207,50 @@ class TricksTestCase(GraphicUnitTest):
         popup.dismiss()
         self.advance_frames(1)
 
+        assert wb_screen.snail_active
+
+        self.root = root_widget
+        self.root.can_draw = True
+        self.render(self.root)
+        self.root.transition = NoTransition()
+        self.root.ws = True
+        self.root.current = "whiteboard"
+        wb_screen = self.root.current_screen
+        self.advance_frames(1)
+
+        canvas = wb_screen.ids.canvas
+        canvas.pos = (0, 0)
+        canvas.tool = Tools.LINE.value
+        touch = UnitTestTouch(x=300, y=300)
+        touch.touch_down()
+        touch.touch_move(x=200, y=200)
+        touch.touch_move(x=300, y=300)
+        touch.touch_move(x=400, y=400)
+        time.sleep(1)
+        touch.touch_move(x=250, y=250)
+        touch.touch_up()
+        self.advance_frames(1)
+
+        colour = canvas.colour
+        expected_line = [300.0, 300.0, 200.0, 200.0, 250.0, 250.0]
+        assert json.loads(wb_screen.message) == {
+            "topic": Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
+            "username": root_widget.username,
+            "game_id": root_widget.game_id,
+            "value": {
+                "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
+                "data": {
+                    "line": expected_line,
+                    "colour": colour,
+                    "width": 2,
+                },
+            },
+        }
+
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
+        incoming_message = self.game_turn_message.copy(deep=True)
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
+
+        assert not wb_screen.snail_active
