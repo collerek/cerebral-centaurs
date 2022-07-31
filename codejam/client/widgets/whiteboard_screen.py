@@ -26,10 +26,8 @@ logger = logging.getLogger(__name__)
 class WhiteBoardScreen(EventHandler):
     """WhiteBoardScreen"""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.url = "ws://127.0.0.1:8000/ws/{0}"
-
+    url = "ws://127.0.0.1:8000/ws/{0}"
+    hosted_url = "ws://cerebral-centaurs.herokuapp.com/ws/{0}"
     lobby_widget = ObjectProperty(None)
     layout = ObjectProperty(None)
     message = StringProperty("")
@@ -169,7 +167,8 @@ class WhiteBoardScreen(EventHandler):
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
-        url = self.url.format(self.manager.username)
+        url = self.hosted_url if self.manager.hosted else self.url
+        url = url.format(self.manager.username)
         logger.debug(url)
         async with websockets.connect(url) as websocket:
             while True:
