@@ -34,10 +34,10 @@ RootWidget:
                 orientation: 'vertical'
                 LoginInput:
                     id: username
-                    hint_text: 'username'
+                    hint_text: 'Username'
                 LoginInput:
                     id: game_selection
-                    hint_text: 'entry code'
+                    hint_text: 'Entry code'
                 Spinner:
                     id: difficulty
                     values: pd.list()
@@ -51,7 +51,7 @@ RootWidget:
                     rectangle: self.x, self.y, self.width, self.height
             color: 0.2, 0.5, 0.9, 1
             pos: root.width * 0.55, root.height * 0.05
-            text: "join room"
+            text: "Join room"
             on_release:
                 root.create_room = False
                 root.username = username.text or root.username
@@ -66,7 +66,7 @@ RootWidget:
                     rectangle: self.x, self.y, self.width, self.height
             color: 0.5, 0.2, 0.9, 1
             pos: root.width * 0.05, root.height * 0.05
-            text: "create room"
+            text: "Create room"
             on_release:
                 root.create_room = True
                 root.difficulty = difficulty.text
