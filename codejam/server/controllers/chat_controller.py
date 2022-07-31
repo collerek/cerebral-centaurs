@@ -8,6 +8,7 @@ from codejam.server.controllers.game_controller import GameController
 from codejam.server.interfaces.game_message import GameMessage, TurnMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import ChatOperations, GameOperations, Topic, TopicEnum
+from codejam.server.models.game import Turn
 
 
 class ChatController(BaseController):
@@ -24,6 +25,13 @@ class ChatController(BaseController):
         """Available routes for different operations."""
         return {ChatOperations.SAY.value: self.say}
 
+    @staticmethod
+    def check_if_winning_phrase(current_turn: Turn, message: Message):
+        """Check if all words from phrase are in the message."""
+        phrase_tokens = current_turn.phrase.lower().split()
+        message_tokens = message.value.message.lower().split()
+        return all([x in message_tokens for x in phrase_tokens])
+
     async def check_if_we_have_a_winner(self, message: Message):
         """Check if someone posted the answer in the chat."""
         user = self.manager.get_user(message.username)
@@ -31,7 +39,7 @@ class ChatController(BaseController):
         current_turn = game.current_turn
         if (
             current_turn
-            and current_turn.phrase.lower() == message.value.message.lower()
+            and self.check_if_winning_phrase(current_turn=current_turn, message=message)
             and current_turn.drawer.username != message.value.sender
         ):
             game.win(user)

@@ -54,24 +54,17 @@
         draw_mark: .1, .2, .3
         line_width: 2
         angle: 0
-        circle: False
-        radius: max(self.width, self.height)/2
         canvas.before:
             PushMatrix
             Rotate:
-                angle: self.angle or 0
+                angle: self.angle
                 axis: 0, 0, 1
-                origin: self.center_x + self.offset_x, self.center_y + self.offset_y
+                origin: self.center
             Color:
-                hsv: (self.draw_mark or (0,0,0)) if not self.circle else root.bg_color
+                hsv: self.draw_mark or (.1, .2, .3)
             Rectangle:
-                pos: self.pos
+                pos: self.x + self.offset_x, self.y + self.offset_y
                 size: self.size
-            Color:
-                hsv: self.draw_mark or (0, 0, 0)
-            Line:
-                circle: self.center_x + self.offset_x, self.center_y + self.offset_y, self.radius
-                width: 1
         canvas.after:
             PopMatrix
     CLabel:
@@ -171,68 +164,6 @@
                 root._canvas.line_width = 10
                 root._canvas.tool = 'line'
                 root._canvas.colour = root._canvas.draw_mark
-
-<CanvasTools>:
-    padding: dp(5)
-    spacing: dp(5)
-    orientation: 'tb-lr'
-    rows: 2
-    CButton:
-        text: 'inc width'
-        on_release:
-            root._canvas.width += 5
-    CButton:
-        text: 'dec width'
-        on_release:
-            root._canvas.width -= 5
-    CButton:
-        text: 'inc height'
-        on_release:
-            root._canvas.height += 10
-    CButton:
-        text: 'dec height'
-        on_release:
-            root._canvas.height -= 10
-    CButton:
-        text: 'right'
-        on_release:
-            root._canvas.offset_x += 10
-    CButton:
-        text: 'left'
-        on_release:
-            root._canvas.offset_x -= 10
-    CButton:
-        text: 'up'
-        on_release:
-            root._canvas.offset_y += 10
-    CButton:
-        text: 'down'
-        on_release:
-            root._canvas.offset_y -= 10
-    CButton:
-        text: '- rotate'
-        on_release:
-            root._canvas.angle += 15
-    CButton:
-        text: '+ rotate'
-        on_release:
-            root._canvas.angle -= 15
-    CButton:
-        text: '- rot anim'
-        on_release:
-            A(angle=720, d=10).start(root._canvas)
-    CButton:
-        text: '+ rot anim'
-        on_release:
-            A(angle=-720, d=10).start(root._canvas)
-    CButton:
-        text: 'circle'
-        on_release:
-            root._canvas.circle = True
-    CButton:
-        text: 'rectangle'
-        on_release:
-            root._canvas.circle = False
 
 <InfoPopup>:
     auto_dismiss: False
