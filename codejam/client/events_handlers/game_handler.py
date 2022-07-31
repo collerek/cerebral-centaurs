@@ -99,6 +99,9 @@ class GameEventHandler(BaseEventHandler):
 
     def game_end(self, message: Message):
         """Handle game end event."""
+        self.cvs.canvas.clear()
+        self.ids.score_board.current_turn = 0
+        self.ids.score_board.turns_no = 0
         self.manager.current = "menu_screen"
         self.ids.counter.cancel_animation()
         self.ids.counter.text = "WAITING FOR START"
