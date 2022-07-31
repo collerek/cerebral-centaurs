@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from codejam.server.exceptions import GameNotExist, UserNotExist
+from codejam.server.exceptions import GameNotExist, UserAlreadyExists, UserNotExist
 from codejam.server.interfaces.message import Message
 from codejam.server.models.game import Game
 from codejam.server.models.user import User
@@ -16,8 +16,13 @@ class ConnectionManager:
 
     async def connect(self, user: User):
         """Accepts the connections and stores it in a list"""
-        await user.websocket.accept()
-        self.active_connections.append(user)
+        try:
+            user = self.get_user(user.username)
+            if user:
+                raise UserAlreadyExists(f"User {user.username} already exists!")
+        except UserNotExist:
+            await user.websocket.accept()
+            self.active_connections.append(user)
 
     def disconnect(self, user: User):
         """Remove the connections from active connections"""
