@@ -23,14 +23,21 @@ class TrickEventHandler(BaseEventHandler):
         }
         self.callbacks[TopicEnum.TRICK.value] = self.trick_callbacks
 
+    def cancel_previous_tricks(self):
+        """To be sure we not apply two tricks at once."""
+        Animation.cancel_all(self.cvs)
+        self.snail_active = False
+
     def snail(self, message: Message) -> None:
         """Snail trick handler"""
         self.display_message(message=message)
+        self.cancel_previous_tricks()
+        self.snail_active = True
 
     def earthquake(self, message: Message) -> None:
         """Earthquake trick handler"""
         self.display_message(message=message)
-        Animation.cancel_all(self.cvs)
+        self.cancel_previous_tricks()
         offset = 10
         step_duration = 0.05
         self.current_trick = (
@@ -51,7 +58,7 @@ class TrickEventHandler(BaseEventHandler):
     def landslide(self, message: Message) -> None:
         """Landslide trick handler"""
         self.display_message(message=message)
-        Animation.cancel_all(self.cvs)
+        self.cancel_previous_tricks()
         offset = choice([150, -150])
         angles = {150: -30, -150: 30}
         angle = angles[offset]
@@ -63,10 +70,12 @@ class TrickEventHandler(BaseEventHandler):
 
     def packman(self, message: Message) -> None:
         """Handle packman trick"""
+        self.cancel_previous_tricks()
         self.display_message(message=message)
 
     def nothing(self, message: Message) -> None:
         """Handle nothing trick - just popup"""
+        self.cancel_previous_tricks()
         self.display_message(message=message)
 
     @staticmethod

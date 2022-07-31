@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta
 from enum import Enum
 from random import random
 from typing import Callable, Dict, Tuple
@@ -54,6 +55,7 @@ class DrawCanvas(Widget):
             Tools.LINE.value: self._update_line,
             Tools.RECT.value: self._update_rectangle,
         }
+        self.last_draw_time = None
 
     def valid_touch(self, touch: MotionEvent) -> bool:
         """Checks if the touch is valid"""
@@ -130,10 +132,21 @@ class DrawCanvas(Widget):
     def _update_line(self, touch: MotionEvent) -> Tuple[uuid.UUID, DrawOperations, LineData]:
         """Update a line"""
         with self.canvas:
-            touch.ud[Tools.LINE.value].points += (
-                touch.x - self.offset_x,
-                touch.y - self.offset_y,
-            )
+            if self.screen.snail_active:
+                if (
+                    not self.last_draw_time
+                    or self.last_draw_time + timedelta(milliseconds=200) <= datetime.now()
+                ):
+                    self.last_draw_time = datetime.now()
+                    touch.ud[Tools.LINE.value].points += (
+                        touch.x - self.offset_x,
+                        touch.y - self.offset_y,
+                    )
+            else:
+                touch.ud[Tools.LINE.value].points += (
+                    touch.x - self.offset_x,
+                    touch.y - self.offset_y,
+                )
         return self._prepare_line_data(touch=touch)
 
     def _draw_rectangle(self, touch: MotionEvent) -> None:
@@ -176,7 +189,7 @@ class DrawCanvas(Widget):
         draw_id = uuid.uuid4()
         operation = DrawOperations.LINE
         data = LineData(
-            line=touch.ud[Tools.LINE.value].points[-4:],
+            line=touch.ud[Tools.LINE.value].points,
             colour=self.colour,
             width=self.line_width,
         )
