@@ -81,9 +81,7 @@ class WhiteBoardScreen(EventHandler):
 
     def on_pre_enter(self) -> None:
         """Called when the screen is about to be shown."""
-        self.manager.game_id = StringProperty(
-            "".join(choices(string.ascii_letters + string.digits, k=8))
-        )
+        self.manager.game_id = "".join(choices(string.ascii_letters + string.digits, k=8))
         self.canvas_initial_offset_x = self.cvs.offset_x
         self.canvas_initial_offset_y = self.cvs.offset_y
         if not self.manager.ws:
