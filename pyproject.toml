@@ -9,7 +9,7 @@ authors = [
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "3.10.*"
+python = "3.10.5"
 fastapi = "^0.79.0"
 uvicorn = {extras = ["standard"], version = "^0.18.2"}
 Kivy = "^2.1.0"

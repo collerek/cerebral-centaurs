@@ -50,6 +50,13 @@ RootWidget:
                     values: pd.list()
                     text: pd.default()
         GameButton:
+            color: 0.5, 0.2, 0.9, 1
+            pos_hint: {"x": .05, "top": .95}
+            size_hint: .03, .03
+            text: 'hosted' if root.hosted else 'local'
+            on_release:
+                root.hosted = not root.hosted
+        GameButton:
             canvas.before:
                 Color:
                     rgba: .2, .5, .9, 1
