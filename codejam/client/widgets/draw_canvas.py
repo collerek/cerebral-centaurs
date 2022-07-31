@@ -6,7 +6,13 @@ from typing import Callable, Dict, Tuple
 
 from kivy.graphics import Color, Line, Rectangle
 from kivy.input import MotionEvent
-from kivy.properties import BoundedNumericProperty, ListProperty, StringProperty
+from kivy.properties import (
+    BooleanProperty,
+    BoundedNumericProperty,
+    ListProperty,
+    NumericProperty,
+    StringProperty,
+)
 from kivy.uix.widget import Widget
 
 from codejam.server.interfaces.message import Message
@@ -29,6 +35,9 @@ class DrawCanvas(Widget):
     colour = ListProperty([random(), 1, 1])
     line_width = BoundedNumericProperty(2, min=1, max=50, errorvalue=1)
     tool = StringProperty("line")
+    angle = BoundedNumericProperty(0, min=-3600, max=3600, errorvalue=0)
+    radius = NumericProperty(0)
+    circle = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -48,10 +57,17 @@ class DrawCanvas(Widget):
         }
         self.last_draw_time = None
 
+    def valid_touch(self, touch: MotionEvent) -> bool:
+        """Checks if the touch is valid"""
+        if self.circle:
+            x, y = self.center_x + self.offset_x, self.center_y + self.offset_y
+            return (abs(touch.x - x) ** 2 + abs(touch.y - y) ** 2) ** 0.5 < self.radius
+        return self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y)
+
     def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
         if self.screen.manager.can_draw:
-            if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
+            if self.valid_touch(touch):
                 with self.canvas:
                     Color(*self.colour, mode="hsv")
                     self.drawables.get(self.tool)(touch)
@@ -67,7 +83,7 @@ class DrawCanvas(Widget):
 
     def on_touch_move(self, touch: MotionEvent) -> None:
         """Called when a touch move event occurs"""
-        if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
+        if self.valid_touch(touch):
             operator = self.select_operator(touch.ud)
             if operator:
                 draw_id, operation, data = operator(touch)
@@ -78,7 +94,7 @@ class DrawCanvas(Widget):
 
     def on_touch_up(self, touch: MotionEvent) -> None:
         """Called when a touch up event occurs"""
-        if self.collide_point(touch.x - self.offset_x, touch.y - self.offset_y):
+        if self.valid_touch(touch):
             operator = self.select_operator(touch.ud)
             if operator:
                 if self.tool != Tools.LINE.value:
