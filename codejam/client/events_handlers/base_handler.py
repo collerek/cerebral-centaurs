@@ -14,6 +14,7 @@ class BaseEventHandler(Screen):
     received = StringProperty("")
     received_raw = StringProperty("")
     current_trick = ObjectProperty()
+    pacman_animation = ObjectProperty()
     canvas_initial_offset_x = NumericProperty()
     canvas_initial_offset_y = NumericProperty()
     snail_active = BooleanProperty(False)

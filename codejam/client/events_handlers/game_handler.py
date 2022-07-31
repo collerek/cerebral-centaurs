@@ -1,5 +1,7 @@
 from typing import Callable, Dict
 
+from kivy.animation import Animation
+
 from codejam.client.events_handlers.base_handler import BaseEventHandler
 from codejam.client.events_handlers.utils import display_popup
 from codejam.server.interfaces.message import Message
@@ -29,7 +31,12 @@ class GameEventHandler(BaseEventHandler):
         self.cvs.angle = 0
         self.snail_active = False
         if self.current_trick:
-            self.current_trick.cancel(self.cvs)
+            if isinstance(self.current_trick, Animation):
+                self.current_trick.cancel(self.cvs)
+            else:
+                self.current_trick.cancel()
+                if self.pacman_animation:
+                    self.pacman_animation.cancel(self)
 
     def game_create(self, message: Message) -> None:
         """Create game message from other clients"""
@@ -92,6 +99,9 @@ class GameEventHandler(BaseEventHandler):
 
     def game_end(self, message: Message):
         """Handle game end event."""
+        self.cvs.canvas.clear()
+        self.ids.score_board.current_turn = 0
+        self.ids.score_board.turns_no = 0
         self.manager.current = "menu_screen"
         self.ids.counter.cancel_animation()
         self.ids.counter.text = "WAITING FOR START"

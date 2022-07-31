@@ -130,9 +130,14 @@ class TricksTestCase(GraphicUnitTest):
         EventLoop.ensure_window()
         self._win = EventLoop.window
 
-        self.root_widget = root_widget
-        self.render(self.root_widget)
-        wb_screen = self.root_widget.get_screen("whiteboard")
+        self.root = root_widget
+        self.root.can_draw = True
+        self.render(self.root)
+        self.root.transition = NoTransition()
+        self.root.ws = True
+        self.root.current = "whiteboard"
+        wb_screen = self.root.current_screen
+        self.advance_frames(1)
 
         incoming_message = self.test_trick_message.copy(deep=True)
         incoming_message.topic.operation = TrickOperations.PACMAN
@@ -146,8 +151,25 @@ class TricksTestCase(GraphicUnitTest):
         popup.dismiss()
         self.advance_frames(1)
 
-        self.render(self.root_widget)
+        self.render(self.root)
         self.assertLess(len(self._win.children), 2)
+        self.advance_frames(5)
+
+        assert json.loads(wb_screen.second_message) == {
+            "topic": Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE).dict(),
+            "username": root_widget.username,
+            "game_id": root_widget.game_id,
+            "value": {
+                "draw_id": json.loads(wb_screen.second_message)["value"]["draw_id"],
+                "data": {
+                    "line": json.loads(wb_screen.second_message)["value"]["data"]["line"],
+                    "colour": [.2, .9, .5],
+                    "width": 15,
+                },
+            },
+        }
+        wb_screen.current_trick.cancel()
+        self.advance_frames(300)
 
     def test_trick_earthquake(self, *args):
         EventLoop.ensure_window()
