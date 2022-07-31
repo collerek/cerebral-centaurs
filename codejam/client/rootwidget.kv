@@ -1,5 +1,6 @@
 #:import pd codejam.server.models.phrase_generator.PhraseDifficulty
 #:import ascii string.ascii_lowercase
+#:import digits string.digits
 
 <Lobby@RelativeLayout>
 
@@ -19,7 +20,7 @@
     background_color: 0.2, 0.2, 0.2, 1
     font_size: self.height * 0.6
     multiline: False
-    input_filter: lambda text, _: text if text.lower() in ascii else ''
+    input_filter: lambda text, _: text if text.lower() in ascii + digits else ''
 
 RootWidget:
     ws: False
