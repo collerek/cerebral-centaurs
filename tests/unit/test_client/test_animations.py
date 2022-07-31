@@ -35,34 +35,6 @@ class AnimationTestCase(GraphicUnitTest):
         assert not wb_screen.top_enter
         assert wb_screen.label_y == 1
 
-    def test_entering_bottom(self, *args):
-        EventLoop.ensure_window()
-        self._win = EventLoop.window
-
-        self.root = root_widget
-        self.root.can_draw = True
-        self.render(self.root)
-        self.root.transition = NoTransition()
-        self.root.ws = True
-        self.root.current = "whiteboard"
-        wb_screen = self.root.current_screen
-        self.advance_frames(1)
-
-        canvas = wb_screen.ids.canvas
-        canvas.pos = (0, 0)
-
-        self._win.mouse_pos = [self._win.width/2, self._win.height * 0.02]
-        self.advance_frames(45)
-        self.render(self.root)
-        assert wb_screen.bottom_enter
-        assert wb_screen.bottom_y == 0.2
-
-        self._win.mouse_pos = [self._win.width / 2, self._win.height / 2]
-        self.advance_frames(45)
-        self.render(self.root)
-        assert not wb_screen.bottom_enter
-        assert wb_screen.bottom_y == 0
-
     def test_entering_left(self, *args):
         EventLoop.ensure_window()
         self._win = EventLoop.window

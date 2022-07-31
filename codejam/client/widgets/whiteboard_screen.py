@@ -118,7 +118,6 @@ class WhiteBoardScreen(EventHandler):
     top_enter = BooleanProperty(False)
     left_enter = BooleanProperty(False)
     right_enter = BooleanProperty(False)
-    bottom_enter = BooleanProperty(False)
 
     def mouse_pos(self, window: Window, pos: List[Union[int, float]]) -> None:
         """Handle mouse position."""
@@ -128,13 +127,10 @@ class WhiteBoardScreen(EventHandler):
             self.left_enter = True
         elif pos[0] > Window.width * 0.7 and Window.height * 0.2 < pos[1] < Window.height * 0.8:
             self.right_enter = True
-        elif pos[1] < Window.height * 0.2 and Window.width * 0.2 < pos[0] < Window.width * 0.8:
-            self.bottom_enter = True
         else:
             self.top_enter = False
             self.left_enter = False
             self.right_enter = False
-            self.bottom_enter = False
 
     def on_top_enter(self, instance: Widget, value: bool):
         """Handle top enter."""
@@ -167,17 +163,6 @@ class WhiteBoardScreen(EventHandler):
             if self.anim:
                 self.anim.stop(self)
             self.anim = Animation(right_x=0.95, d=0.5)
-            self.anim.start(self)
-
-    def on_bottom_enter(self, instance: Widget, value: bool):
-        """Handle bottom enter."""
-        if value:
-            self.anim = Animation(bottom_y=0.2, d=0.5)
-            self.anim.start(self)
-        else:
-            if self.anim:
-                self.anim.stop(self)
-            self.anim = Animation(bottom_y=0, d=0.5)
             self.anim.start(self)
 
     def start_game(self) -> None:
