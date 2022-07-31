@@ -1,11 +1,25 @@
+#:import Clip kivy.core.clipboard.Clipboard
+
+<GameBox@ButtonBehavior+BoxLayout>:
+    size_hint_y: .2
+    padding: dp(5)
+    colour: .2, .5, .9
+    canvas.before:
+        Color:
+            rgb: root.colour or (0, 0, 0)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+
 <Score>:
     player: ''
     score: 0
+    size_hint: 1, 1/8
     BoxLayout:
         pos_hint: {'top': 0.9, 'right': 1}
         canvas.before:
             Color:
-                rgb: (0.5, 0.2, 0.9)
+                rgb: (0.5, 0.2, 0.9) if root.parent and root.parent.username == root.player else (0.2, 0.5, 0.9)
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
@@ -16,6 +30,7 @@
             height: self.texture_size[1]
             halign: 'left'
         Label:
+            size_hint_x: .3
             font_size: sp(15)
             text: str(root.score)
             text_size: self.width - dp(10), None
@@ -23,20 +38,18 @@
             halign: 'right'
 
 <ScoreBoard>:
+    username: ''
     game_id: ''
     spacing: dp(10)
     current_turn: 0
     turns_no: 0
     orientation: 'vertical'
-    BoxLayout:
-        size_hint_y: .2
-        padding: dp(5)
-        canvas.before:
-            Color:
-                rgb: .2, .5, .9
-            RoundedRectangle:
-                pos: self.pos
-                size: self.size
+    GameBox:
+        on_press:
+            self.colour = .5, .2, .9
+        on_release:
+            Clip.copy(root.game_id)
+            self.colour = .2, .5, .9
         Label:
             id: game_label
             text_size: self.width, None
@@ -45,13 +58,14 @@
         Label:
             id: turns
             text_size: self.width, None
-            size_hint_x: .3
-            halign: 'center'
-            text: f"{root.current_turn} / {root.turns_no}"
+            size_hint_x: .35
+            halign: 'left'
+            text: f"{root.current_turn}/{root.turns_no}"
     GridLayout:
+        username: root.username
         orientation: 'tb-lr'
         rows: 8
         id: scores
-        height: self.minimum_height
         spacing: dp(1)
         padding: dp(2)
+    Widget

@@ -69,9 +69,6 @@ def test_frame() -> Message:
     )
 
 
-
-
-
 @pytest.fixture(scope="class")
 def test_data(
     request,
@@ -79,6 +76,7 @@ def test_data(
     test_line: Message,
     test_frame: Message,
 ) -> None:
+    request.cls.test_circle = test_line
     request.cls.test_rectangle = test_rectangle
     request.cls.test_line = test_line
     request.cls.test_frame = test_frame
@@ -86,6 +84,48 @@ def test_data(
 
 @pytest.mark.usefixtures("test_data")
 class BasicDrawingTestCase(GraphicUnitTest):
+
+    def test_drawing_circular_canvas(self, *args):
+        EventLoop.ensure_window()
+        self._win = EventLoop.window
+
+        self.root = root_widget
+        self.root.can_draw = True
+        self.render(self.root)
+        self.root.transition = NoTransition()
+        self.root.ws = True
+        self.root.current = "whiteboard"
+        wb_screen = self.root.current_screen
+        self.advance_frames(1)
+
+        canvas = wb_screen.ids.canvas
+        canvas.circle = True
+        canvas.pos = (0, 0)
+        canvas.tool = Tools.LINE.value
+        touch = UnitTestTouch(x=200, y=200)
+        touch.touch_down()
+        touch.touch_move(x=100, y=100)
+        touch.touch_up()
+        colour = canvas.colour
+        expected_line = [200.0, 200.0, 100.0, 100.0]
+        assert json.loads(wb_screen.message) == {
+            "topic": self.test_line.topic.dict(),
+            "username": self.test_line.username,
+            "game_id": root_widget.game_id,
+            "value": {
+                "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
+                "data": {
+                    "line": expected_line,
+                    "colour": colour,
+                    "width": 2,
+                },
+            },
+        }
+        self.advance_frames(2)
+        canvas.circle = False
+        assert Tools.LINE.value in touch.ud
+        assert isinstance(touch.ud[Tools.LINE.value], Line)
+        assert touch.ud[Tools.LINE.value].points == expected_line
 
     def test_drawing_line(self, *args):
         EventLoop.ensure_window()
