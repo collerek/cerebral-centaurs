@@ -20,7 +20,7 @@ RootWidget:
         id: menu_screen
         name: 'menu_screen'
         RelativeLayout:
-            TextInput:
+            FilteredTextInput:
                 id: username
                 background_color: 0.2, 0.2, 0.2, 1
                 font_size: self.height * 0.6
@@ -28,7 +28,7 @@ RootWidget:
                 size_hint: .45, .09
                 hint_text: 'username'
                 multiline: False
-            TextInput:
+            FilteredTextInput:
                 id: game_selection
                 background_color: 0.2, 0.2, 0.2, 1
                 font_size: self.height * 0.6
