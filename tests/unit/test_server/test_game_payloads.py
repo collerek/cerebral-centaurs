@@ -1,6 +1,8 @@
+import pytest
 from starlette.testclient import TestClient
 
 from codejam.server import app
+from codejam.server.exceptions import UserAlreadyExists
 from codejam.server.interfaces.message import Message
 
 
@@ -90,3 +92,17 @@ def test_ending_not_existing(
                 "value": "Game with id: dummy_game_id does not exist!",
             },
         }
+
+
+def test_joining_with_existing_username_raises_error(
+    test_client: str,
+    second_test_client: str,
+    test_data: Message,
+    game_creation_message: Message,
+    game_join_message: Message,
+):
+    client = TestClient(app)
+    with pytest.raises(UserAlreadyExists):
+        with client.websocket_connect(f"/ws/{test_client}"):
+            with client.websocket_connect(f"/ws/{test_client}"):
+                pass  # pragma: no cover
