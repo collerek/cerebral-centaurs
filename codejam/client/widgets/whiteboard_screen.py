@@ -33,6 +33,7 @@ class WhiteBoardScreen(EventHandler):
     lobby_widget = ObjectProperty(None)
     layout = ObjectProperty(None)
     message = StringProperty("")
+    second_message = StringProperty("")
 
     def task_callback(self, task: asyncio.Task):
         """Used to handle exceptions inside websocket task."""
@@ -202,6 +203,10 @@ class WhiteBoardScreen(EventHandler):
             while True:
                 if m := self.message:
                     self.message = ""
+                    logger.debug("sending " + m)
+                    await websocket.send(m)
+                if m := self.second_message:
+                    self.second_message = ""
                     logger.debug("sending " + m)
                     await websocket.send(m)
                 try:
