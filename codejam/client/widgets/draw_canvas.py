@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta
 from enum import Enum
 from random import random
 from typing import Callable, Dict, Tuple
@@ -38,12 +39,14 @@ class DrawCanvas(Widget):
         }
 
         self.updates: Dict[
-            str, Callable[[MotionEvent], Tuple[uuid.UUID, DrawOperations, LineData | RectData]]
+            str,
+            Callable[[MotionEvent], Tuple[uuid.UUID, DrawOperations, LineData | RectData]],
         ] = {
             Tools.FRAME.value: self._update_frame,
             Tools.LINE.value: self._update_line,
             Tools.RECT.value: self._update_rectangle,
         }
+        self.last_draw_time = None
 
     def on_touch_down(self, touch: MotionEvent) -> None:
         """Called when a touch down event occurs"""
@@ -93,34 +96,62 @@ class DrawCanvas(Widget):
         """Update a frame"""
         with self.canvas:
             if not touch.ud.get("origin"):
-                touch.ud["origin"] = (touch.x, touch.y)
+                touch.ud["origin"] = (touch.x - self.offset_x, touch.y - self.offset_y)
             pos = touch.ud["origin"]
-            (x, x2), (y, y2) = [sorted((pos[0], touch.x)), sorted((pos[1], touch.y))]
+            (x, x2), (y, y2) = [
+                sorted((pos[0], touch.x - self.offset_x)),
+                sorted((pos[1], touch.y - self.offset_y)),
+            ]
             touch.ud[Tools.FRAME.value].points = [x, y, x2, y, x2, y2, x, y2, x, y]
         return self._prepare_frame_data(touch=touch)
 
     def _draw_line(self, touch: MotionEvent) -> None:
         """Draw a line"""
-        touch.ud[Tools.LINE.value] = Line(points=(touch.x, touch.y), width=self.line_width)
+        touch.ud[Tools.LINE.value] = Line(
+            points=(touch.x - self.offset_x, touch.y - self.offset_y),
+            width=self.line_width,
+        )
         self.ids[uuid.uuid4()] = touch.ud[Tools.LINE.value]
 
     def _update_line(self, touch: MotionEvent) -> Tuple[uuid.UUID, DrawOperations, LineData]:
         """Update a line"""
         with self.canvas:
-            touch.ud[Tools.LINE.value].points += (touch.x, touch.y)
+            if self.screen.snail_active:
+                if (
+                    not self.last_draw_time
+                    or self.last_draw_time + timedelta(milliseconds=200) <= datetime.now()
+                ):
+                    self.last_draw_time = datetime.now()
+                    touch.ud[Tools.LINE.value].points += (
+                        touch.x - self.offset_x,
+                        touch.y - self.offset_y,
+                    )
+            else:
+                touch.ud[Tools.LINE.value].points += (
+                    touch.x - self.offset_x,
+                    touch.y - self.offset_y,
+                )
         return self._prepare_line_data(touch=touch)
 
     def _draw_rectangle(self, touch: MotionEvent) -> None:
         """Draw a rectangle"""
-        touch.ud[Tools.RECT.value] = Rectangle(pos=(touch.x, touch.y), size=(0, 0))
+        touch.ud[Tools.RECT.value] = Rectangle(
+            pos=(touch.x - self.offset_x, touch.y - self.offset_y), size=(0, 0)
+        )
 
     def _update_rectangle(self, touch: MotionEvent) -> Tuple[uuid.UUID, DrawOperations, RectData]:
         """Update rectangle"""
         if not touch.ud.get("origin"):
             touch.ud["origin"] = (touch.x, touch.y)
         pos = touch.ud["origin"]
-        touch.ud[Tools.RECT.value].pos = [min(pos[0], touch.x), min(pos[1], touch.y)]
-        touch.ud[Tools.RECT.value].size = [abs(touch.x - pos[0]), abs(touch.y - pos[1])]
+        touch.ud[Tools.RECT.value].pos = [
+            min(pos[0] - self.offset_x, touch.x - self.offset_x),
+            min(pos[1] - self.offset_y, touch.y - self.offset_y),
+        ]
+        touch.ud[Tools.RECT.value].size = [
+            abs(touch.x - self.offset_x - pos[0]),
+            abs(touch.y - self.offset_y - pos[1]),
+        ]
         return self._prepare_rectangle_data(touch=touch)
 
     def _prepare_frame_data(
@@ -142,7 +173,7 @@ class DrawCanvas(Widget):
         draw_id = uuid.uuid4()
         operation = DrawOperations.LINE
         data = LineData(
-            line=touch.ud[Tools.LINE.value].points[-4:],
+            line=touch.ud[Tools.LINE.value].points,
             colour=self.colour,
             width=self.line_width,
         )

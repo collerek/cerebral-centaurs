@@ -1,5 +1,5 @@
 import uuid
-from random import randint
+from random import choice, randint
 from typing import Callable, Dict, cast
 
 from kivy.animation import Animation
@@ -32,26 +32,59 @@ class TrickEventHandler(BaseEventHandler):
         }
         self.callbacks[TopicEnum.TRICK.value] = self.trick_callbacks
 
+    def cancel_previous_tricks(self):
+        """To be sure we not apply two tricks at once."""
+        Animation.cancel_all(self.cvs)
+        self.snail_active = False
+
     def snail(self, message: Message) -> None:
         """Snail trick handler"""
         self.display_message(message=message)
+        self.cancel_previous_tricks()
+        self.snail_active = True
 
     def earthquake(self, message: Message) -> None:
         """Earthquake trick handler"""
         self.display_message(message=message)
+        self.cancel_previous_tricks()
+        offset = 10
+        step_duration = 0.05
+        self.current_trick = (
+            Animation(offset_x=-offset / 2, duration=step_duration)
+            + Animation(offset_x=+offset, duration=step_duration)
+            + Animation(offset_x=-offset, duration=step_duration)
+            + Animation(offset_x=+offset / 2, duration=step_duration)
+        )
+        self.current_trick += (
+            Animation(offset_y=-offset / 2, duration=step_duration)
+            + Animation(offset_y=+offset, duration=step_duration)
+            + Animation(offset_y=-offset, duration=step_duration)
+            + Animation(offset_y=+offset / 2, duration=step_duration)
+        )
+        self.current_trick.repeat = True
+        self.current_trick.start(self.cvs)
 
     def landslide(self, message: Message) -> None:
         """Landslide trick handler"""
         self.display_message(message=message)
+        self.cancel_previous_tricks()
+        offset = choice([150, -150])
+        angles = {150: -30, -150: 30}
+        angle = angles[offset]
+        step_duration = 0.5
+        self.current_trick = Animation(
+            offset_x=offset, offset_y=-200, angle=angle, duration=step_duration
+        )
+        self.current_trick.start(self.cvs)
 
     def packman(self, message: Message) -> None:
         """Handle packman trick"""
+        self.cancel_previous_tricks()
         self.display_message(message=message)
-        canvas = self.manager.current_screen.ids.canvas
-        self.line_width = randint(20, 40)
-        self.line_x = randint(int(canvas.pos[0]), int(canvas.pos[0]) + canvas.size[0])
-        self.line_y = canvas.pos[1] + self.width
-        self.anim = Animation(a=0, duration=canvas.size[1])
+        self.line_width = randint(20, 30)
+        self.line_x = randint(int(self.cvs.pos[0]), int(self.cvs.pos[0]) + self.cvs.size[0])
+        self.line_y = self.cvs.pos[1] + self.cvs.width
+        self.anim = Animation(a=0, duration=self.cvs.size[1])
         self.anim.start(self)
 
     def on_a(self):
@@ -77,6 +110,7 @@ class TrickEventHandler(BaseEventHandler):
 
     def nothing(self, message: Message) -> None:
         """Handle nothing trick - just popup"""
+        self.cancel_previous_tricks()
         self.display_message(message=message)
 
     @staticmethod

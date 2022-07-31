@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import pathlib
 from typing import List, Union
 
@@ -13,12 +14,13 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.widget import Widget
 from websockets.exceptions import ConnectionClosedError
 
-from codejam import logger
 from codejam.client.events_handlers import EventHandler
 from codejam.client.events_handlers.utils import display_popup
 from codejam.server.interfaces.game_message import GameMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import GameOperations, Topic, TopicEnum
+
+logger = logging.getLogger(__name__)
 
 
 class WhiteBoardScreen(EventHandler):
@@ -39,6 +41,7 @@ class WhiteBoardScreen(EventHandler):
         except asyncio.CancelledError:
             pass  # Task cancellation should not be treated as an error.
         except ConnectionRefusedError as e:
+            logger.error(e)
             self.reset_websocket()
             display_popup(
                 header="Error encountered!",
@@ -48,6 +51,7 @@ class WhiteBoardScreen(EventHandler):
                 auto_dismiss=False,
             )
         except ConnectionClosedError as e:
+            logger.error(e)
             self.reset_websocket()
             display_popup(
                 header="Connection lost",
@@ -56,7 +60,8 @@ class WhiteBoardScreen(EventHandler):
                 additional_message="Check your server and internet connections.",
                 auto_dismiss=False,
             )
-        except Exception:
+        except Exception as e:
+            logger.error(e)
             self.reset_websocket()
             display_popup(
                 header="Unexpected error encountered!",
@@ -73,6 +78,8 @@ class WhiteBoardScreen(EventHandler):
 
     def on_pre_enter(self) -> None:
         """Called when the screen is about to be shown."""
+        self.canvas_initial_offset_x = self.cvs.offset_x
+        self.canvas_initial_offset_y = self.cvs.offset_y
         if not self.manager.ws:
             websocket_task = asyncio.create_task(self.run_websocket())
             websocket_task.add_done_callback(self.task_callback)

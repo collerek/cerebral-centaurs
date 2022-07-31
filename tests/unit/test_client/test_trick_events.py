@@ -1,17 +1,22 @@
 import json
+import time
 
 import pytest
 from kivy.base import EventLoop
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, UnitTestTouch
 from kivy.uix.modalview import ModalView
+from kivy.uix.screenmanager import NoTransition
 
 from codejam.client.client import root_widget
+from codejam.client.widgets.draw_canvas import Tools
+from codejam.server.interfaces.game_message import GameMessage, TurnMessage
 from codejam.server.interfaces.message import Message
 from codejam.server.interfaces.topics import (
-    Topic,
+    DrawOperations, GameOperations, Topic,
     TopicEnum, TrickOperations,
 )
 from codejam.server.interfaces.trick_message import TrickMessage
+from codejam.server.models.phrase_generator import PhraseDifficulty
 
 
 @pytest.fixture(scope="class")
@@ -23,14 +28,37 @@ def test_trick_message() -> Message:
         value=TrickMessage(game_id=root_widget.game_id, description="Test trick"),
     )
 
+@pytest.fixture(scope="class")
+def game_turn_message() -> Message:
+    return Message(
+        topic=Topic(type=TopicEnum.GAME, operation=GameOperations.TURN),
+        username=root_widget.username,
+        game_id=root_widget.game_id,
+        value=GameMessage(
+            success=True,
+            game_id=root_widget.game_id,
+            turn=TurnMessage(
+                turn_no=1,
+                active=True,
+                drawer=root_widget.username,
+                duration=1,
+                level=PhraseDifficulty.MEDIUM,
+                score={root_widget.username: 100},
+                phrase="Dummy",
+            ),
+        ),
+    )
 
 @pytest.fixture(scope="class")
 def test_data(
     request,
     test_trick_message: Message,
+game_turn_message: Message
 ) -> None:
 
     request.cls.test_trick_message = test_trick_message
+    request.cls.game_turn_message = game_turn_message
+
 
 
 
@@ -66,6 +94,9 @@ class TricksTestCase(GraphicUnitTest):
         self.render(self.root_widget)
         wb_screen = self.root_widget.get_screen("whiteboard")
 
+        initial_offset_x = wb_screen.cvs.offset_x
+        initial_offset_y = wb_screen.cvs.offset_y
+
         incoming_message = self.test_trick_message.copy(deep=True)
         incoming_message.topic.operation = TrickOperations.LANDSLIDE
         wb_screen.received = incoming_message.json()
@@ -80,6 +111,20 @@ class TricksTestCase(GraphicUnitTest):
 
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
+        self.advance_frames(50)
+
+        assert wb_screen.cvs.offset_x != initial_offset_x
+        assert wb_screen.cvs.offset_y != initial_offset_y
+        assert wb_screen.cvs.angle != 0
+
+        incoming_message = self.game_turn_message.copy(deep=True)
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
+
+        assert not wb_screen.current_trick._widgets
+        assert wb_screen.cvs.offset_x == initial_offset_x
+        assert wb_screen.cvs.offset_y == initial_offset_y
+        assert wb_screen.cvs.angle == 0
 
     def test_trick_pacman(self, *args):
         EventLoop.ensure_window()
@@ -112,6 +157,9 @@ class TricksTestCase(GraphicUnitTest):
         self.render(self.root_widget)
         wb_screen = self.root_widget.get_screen("whiteboard")
 
+        initial_offset_x = wb_screen.cvs.offset_x
+        initial_offset_y = wb_screen.cvs.offset_y
+
         incoming_message = self.test_trick_message.copy(deep=True)
         incoming_message.topic.operation = TrickOperations.EARTHQUAKE
         wb_screen.received = incoming_message.json()
@@ -126,6 +174,18 @@ class TricksTestCase(GraphicUnitTest):
 
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
+        self.advance_frames(50)
+        assert wb_screen.cvs.offset_x != initial_offset_x
+        assert wb_screen.cvs.offset_y != initial_offset_y
+
+        incoming_message = self.game_turn_message.copy(deep=True)
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
+
+        assert not wb_screen.current_trick._widgets
+        assert wb_screen.cvs.offset_x == initial_offset_x
+        assert wb_screen.cvs.offset_y == initial_offset_y
+        assert wb_screen.cvs.angle == 0
 
     def test_trick_snail(self, *args):
         EventLoop.ensure_window()
@@ -147,5 +207,50 @@ class TricksTestCase(GraphicUnitTest):
         popup.dismiss()
         self.advance_frames(1)
 
+        assert wb_screen.snail_active
+
+        self.root = root_widget
+        self.root.can_draw = True
+        self.render(self.root)
+        self.root.transition = NoTransition()
+        self.root.ws = True
+        self.root.current = "whiteboard"
+        wb_screen = self.root.current_screen
+        self.advance_frames(1)
+
+        canvas = wb_screen.ids.canvas
+        canvas.pos = (0, 0)
+        canvas.tool = Tools.LINE.value
+        touch = UnitTestTouch(x=300, y=300)
+        touch.touch_down()
+        touch.touch_move(x=200, y=200)
+        touch.touch_move(x=300, y=300)
+        touch.touch_move(x=400, y=400)
+        time.sleep(1)
+        touch.touch_move(x=250, y=250)
+        touch.touch_up()
+        self.advance_frames(1)
+
+        colour = canvas.colour
+        expected_line = [300.0, 300.0, 200.0, 200.0, 250.0, 250.0]
+        assert json.loads(wb_screen.message) == {
+            "topic": Topic(type=TopicEnum.DRAW, operation=DrawOperations.LINE),
+            "username": root_widget.username,
+            "game_id": root_widget.game_id,
+            "value": {
+                "draw_id": json.loads(wb_screen.message)["value"]["draw_id"],
+                "data": {
+                    "line": expected_line,
+                    "colour": colour,
+                    "width": 2,
+                },
+            },
+        }
+
         self.render(self.root_widget)
         self.assertLess(len(self._win.children), 2)
+        incoming_message = self.game_turn_message.copy(deep=True)
+        wb_screen.received = incoming_message.json()
+        assert json.loads(wb_screen.received_raw) == incoming_message.dict()
+
+        assert not wb_screen.snail_active
