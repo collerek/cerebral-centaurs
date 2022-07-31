@@ -26,7 +26,7 @@ RootWidget:
                 font_size: self.height * 0.6
                 pos_hint: {"x": .25, "y": .8}
                 size_hint: .45, .09
-                hint_text: 'username'
+                hint_text: 'Username'
                 multiline: False
             TextInput:
                 id: game_selection
@@ -34,7 +34,7 @@ RootWidget:
                 font_size: self.height * 0.6
                 pos_hint: {"x": .25, "y": .7}
                 size_hint: .45, .09
-                hint_text: 'entry code'
+                hint_text: 'Entry code'
                 multiline: False
             Spinner:
                 id: difficulty
@@ -51,7 +51,7 @@ RootWidget:
                     rectangle: self.x, self.y, self.width, self.height
             color: 0.2, 0.5, 0.9, 1
             pos: root.width * 0.55, root.height * 0.05
-            text: "join room"
+            text: "Join room"
             on_release:
                 root.create_room = False
                 root.username = username.text or root.username
@@ -66,7 +66,7 @@ RootWidget:
                     rectangle: self.x, self.y, self.width, self.height
             color: 0.5, 0.2, 0.9, 1
             pos: root.width * 0.05, root.height * 0.05
-            text: "create room"
+            text: "Create room"
             on_release:
                 root.create_room = True
                 root.difficulty = difficulty.text
