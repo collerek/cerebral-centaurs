@@ -1,5 +1,7 @@
 from typing import Callable, Dict, cast
 
+from kivy.animation import Animation
+
 from codejam.client.events_handlers.base_handler import BaseEventHandler
 from codejam.client.events_handlers.utils import display_popup
 from codejam.server.interfaces.message import Message
@@ -27,6 +29,23 @@ class TrickEventHandler(BaseEventHandler):
     def earthquake(self, message: Message) -> None:
         """Earthquake trick handler"""
         self.display_message(message=message)
+        Animation.cancel_all(self.cvs)
+        offset = 10
+        step_duration = 0.05
+        self.current_trick = (
+            Animation(offset_x=-offset / 2, duration=step_duration)
+            + Animation(offset_x=+offset, duration=step_duration)
+            + Animation(offset_x=-offset, duration=step_duration)
+            + Animation(offset_x=+offset / 2, duration=step_duration)
+        )
+        self.current_trick += (
+            Animation(offset_y=-offset / 2, duration=step_duration)
+            + Animation(offset_y=+offset, duration=step_duration)
+            + Animation(offset_y=-offset, duration=step_duration)
+            + Animation(offset_y=+offset / 2, duration=step_duration)
+        )
+        self.current_trick.repeat = True
+        self.current_trick.start(self.cvs)
 
     def landslide(self, message: Message) -> None:
         """Landslide trick handler"""

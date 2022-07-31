@@ -36,7 +36,7 @@ class TrickGenerator:
             ),
         }
 
-    def generate_trick(self):
+    def generate_trick(self) -> TrickOperations:
         """Chooses a trick to apply."""
         return random.choice(self.options)
 
