@@ -54,17 +54,24 @@
         draw_mark: .1, .2, .3
         line_width: 2
         angle: 0
+        circle: False
+        radius: max(self.width, self.height)/2
         canvas.before:
             PushMatrix
             Rotate:
-                angle: self.angle
+                angle: self.angle or 0
                 axis: 0, 0, 1
-                origin: self.center
+                origin: self.center_x + self.offset_x, self.center_y + self.offset_y
             Color:
-                hsv: self.draw_mark or (.1, .2, .3)
+                hsv: (self.draw_mark or (0,0,0)) if not self.circle else root.bg_color
             Rectangle:
-                pos: self.x + self.offset_x, self.y + self.offset_y
+                pos: self.pos
                 size: self.size
+            Color:
+                hsv: self.draw_mark or (0, 0, 0)
+            Line:
+                circle: self.center_x + self.offset_x, self.center_y + self.offset_y, self.radius
+                width: 1
         canvas.after:
             PopMatrix
     CLabel:
@@ -222,7 +229,15 @@
     CButton:
         text: '+ rot anim'
         on_release:
-            A(angle=0, d=10).start(root._canvas)
+            A(angle=-720, d=10).start(root._canvas)
+    CButton:
+        text: 'circle'
+        on_release:
+            root._canvas.circle = True
+    CButton:
+        text: 'rectangle'
+        on_release:
+            root._canvas.circle = False
 
 <InfoPopup>:
     auto_dismiss: False
