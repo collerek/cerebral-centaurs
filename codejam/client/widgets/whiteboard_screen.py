@@ -121,9 +121,7 @@ class WhiteBoardScreen(EventHandler):
 
     def mouse_pos(self, window: Window, pos: List[Union[int, float]]) -> None:
         """Handle mouse position."""
-        if pos[1] > Window.height * 0.9 and Window.width * 0.2 < pos[0] < Window.width * 0.8:
-            self.top_enter = True
-        elif pos[0] < Window.width * 0.2 and Window.height * 0.2 < pos[1] < Window.height * 0.8:
+        if pos[0] < Window.width * 0.2 and Window.height * 0.2 < pos[1] < Window.height * 0.8:
             self.left_enter = True
         elif pos[0] > Window.width * 0.7 and Window.height * 0.2 < pos[1] < Window.height * 0.8:
             self.right_enter = True
@@ -131,17 +129,6 @@ class WhiteBoardScreen(EventHandler):
             self.top_enter = False
             self.left_enter = False
             self.right_enter = False
-
-    def on_top_enter(self, instance: Widget, value: bool):
-        """Handle top enter."""
-        if value:
-            self.anim = Animation(label_y=0.9, d=0.5)
-            self.anim.start(self)
-        else:
-            if self.anim:
-                self.anim.stop(self)
-            self.anim = Animation(label_y=1, d=0.5)
-            self.anim.start(self)
 
     def on_left_enter(self, instance: Widget, value: bool):
         """Handle left enter."""
@@ -221,12 +208,6 @@ class Instructions(BoxLayout):
     """Instructions rule"""
 
     _canvas = ObjectProperty(None)
-
-
-class CanvasTools(BoxLayout):
-    """CanvasTools rule"""
-
-    ...
 
 
 class InfoPopup(ModalView):
