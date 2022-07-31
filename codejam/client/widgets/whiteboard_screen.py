@@ -6,7 +6,6 @@ from typing import List, Union
 import websockets
 from kivy.animation import Animation
 from kivy.core.window import Window
-from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -84,15 +83,8 @@ class WhiteBoardScreen(EventHandler):
             websocket_task.add_done_callback(self.task_callback)
             self.manager.ws = websocket_task
         if self.manager.create_room:
-            try:
-                lobby = self.manager.ids.lobby
-                if lobby not in self.children:
-                    self.add_widget(lobby)
-            # TODO: Write test for this path
-            except ReferenceError:  # pragma: no cover
-                lobby = Factory.Lobby()
-                self.add_widget(lobby)
-                self.manager.ids["lobby"] = lobby
+            lobby = self.manager.ids.lobby
+            lobby.pos_hint = {"center_x": 0.5, "center_y": 0.5}
             """Create new room"""
             self.message = self._prepare_message(
                 operation=GameOperations.CREATE, include_difficulty=True
@@ -158,12 +150,9 @@ class WhiteBoardScreen(EventHandler):
         self.remove_lobby()
 
     def remove_lobby(self):
-        """Remove lobby if exists."""
-        try:
-            self.remove_widget(self.manager.ids.lobby)
-        # TODO: Write test for this path
-        except ReferenceError:  # pragma: no cover
-            pass
+        """Remove lobby out of view."""
+        lobby = self.manager.ids.lobby
+        lobby.pos_hint = {"center_x": 2, "center_y": 2}
 
     async def run_websocket(self) -> None:
         """Runs the websocket client and send messages."""
