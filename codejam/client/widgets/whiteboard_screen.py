@@ -105,8 +105,7 @@ class WhiteBoardScreen(EventHandler):
     def on_pre_leave(self) -> None:
         """Called when the screen is about to be hidden."""
         Window.unbind(mouse_pos=self.mouse_pos)
-        if self.current_trick:
-            self.current_trick.cancel(self.cvs)
+        self.cancel_trick()
         self.ids.score_board.rebuild_score([])
         self.ids.chat_window.ids.chat_box.clear_widgets()
         self.cvs.canvas.clear()
