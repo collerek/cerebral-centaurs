@@ -46,7 +46,7 @@ class TrickGenerator:
 
     def choose_delay(self) -> int:
         """Selects a delay for a trick from 3s to 1/2 of turn duration."""
-        return random.randint(3, int(self.game.current_turn.duration / 2))
+        return random.randint(3, int(self.game.current_turn.duration / 3))
 
     def prepare_trick_message(self) -> Message:
         """Formats the trick message."""
