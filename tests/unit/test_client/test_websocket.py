@@ -43,6 +43,7 @@ async def test_websockets(
     screen = WhiteBoardScreen(manager=mocker.Mock(username=root_widget.username, game_id=root_widget.game_id))
     message = "test message"
     screen.message = message
+    screen.second_message = message
     if mocked_websockets.refuse_connection:
         with pytest.raises(ConnectionRefusedError):
             await screen.run_websocket()
