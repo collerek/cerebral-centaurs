@@ -40,7 +40,7 @@ class WhiteBoardScreen(EventHandler):
         except asyncio.CancelledError:
             pass  # Task cancellation should not be treated as an error.
         except ConnectionRefusedError as e:
-            logger.error(e)
+            logger.exception(e)
             self.reset_websocket()
             display_popup(
                 header="Error encountered!",
@@ -50,7 +50,7 @@ class WhiteBoardScreen(EventHandler):
                 auto_dismiss=False,
             )
         except ConnectionClosedError as e:
-            logger.error(e)
+            logger.exception(e)
             self.reset_websocket()
             display_popup(
                 header="Connection lost",
@@ -60,7 +60,7 @@ class WhiteBoardScreen(EventHandler):
                 auto_dismiss=False,
             )
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
             self.reset_websocket()
             display_popup(
                 header="Unexpected error encountered!",
