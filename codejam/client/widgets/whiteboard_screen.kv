@@ -216,7 +216,7 @@
 
 <InfoPopup>:
     auto_dismiss: False
-    size_hint: 0.6, 0.2
+    size_hint: 0.6, 0.3
     pos_hint: {"x": 0.2 ,"top": 0.9}
     title: "Error Title"
     additional_message: "Error Code"
@@ -234,6 +234,8 @@
                 rectangle: self.x + 2, self.y + 2, self.width - 2, self.height - 2
         Label:
             text: root.header
+            font_size: sp(20)
+            bold: True
         Widget:
             size_hint_y: .1
             canvas:
@@ -251,7 +253,12 @@
         Label:
             text: root.additional_message
             halign: "left"
+        BoxLayout:
+            size_hint_y: .1
         CButton:
+            font_size: sp(20)
+            size_hint: .3, 1.2
+            pos_hint: {'x': .35}
             color: .2, .5, .9
             text: "Close"
             on_release: root.dismiss()
