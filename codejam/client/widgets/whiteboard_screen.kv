@@ -62,7 +62,7 @@
                 axis: 0, 0, 1
                 origin: self.center_x + self.offset_x, self.center_y + self.offset_y
             Color:
-                hsv: self.draw_mark if not self.circle else root.bg_color
+                hsv: (self.draw_mark or (0,0,0)) if not self.circle else root.bg_color
             Rectangle:
                 pos: self.pos
                 size: self.size
