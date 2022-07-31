@@ -80,7 +80,6 @@ class WhiteBoardScreen(EventHandler):
 
     def on_pre_enter(self) -> None:
         """Called when the screen is about to be shown."""
-        self.manager.game_id = "".join(choices(string.ascii_letters + string.digits, k=8))
         self.canvas_initial_offset_x = self.cvs.offset_x
         self.canvas_initial_offset_y = self.cvs.offset_y
         if not self.manager.ws:
@@ -108,6 +107,7 @@ class WhiteBoardScreen(EventHandler):
     def on_pre_leave(self) -> None:
         """Called when the screen is about to be hidden."""
         Window.unbind(mouse_pos=self.mouse_pos)
+        self.manager.game_id = "".join(choices(string.ascii_letters + string.digits, k=8))
         self.cancel_trick()
         self.ids.score_board.rebuild_score([])
         self.ids.chat_window.ids.chat_box.clear_widgets()
