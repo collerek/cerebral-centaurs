@@ -1,6 +1,154 @@
-# Cerebral Centaurs
+[<img src="https://www.pythondiscord.com/static/images/events/summer_code_jam_2022/site_banner.png">](https://www.pythondiscord.com/static/images/events/summer_code_jam_2022/site_banner.png)
 
-## Project Setup
+# Drawn (by Cerabral Centaurs)
+
+## Introduction
+
+What if you want to play something fun with your friends, but you are so fed up with all the popular games?
+
+That means you haven't seen __Drawn__ by __Cerebral Centaurs__ yet!
+
+Based on old school Pictionary game, with additional surprises waiting for the drawer each turn.
+
+## About the game
+
+### Game creation
+
+#### Difficulty level
+
+__Drawn__ has three difficulty levels that will challenge even veterans (select from Easy/ Medium/ Hard during game creation).
+
+[<img src="static_files/difficulty.png" width="150"/>](static_files/difficulty.png)
+
+#### Room creation
+
+To join the room you will need an entry code provided by the game creator, or you can start a game of your own and invite your friends.
+
+You can click game ID/ Code to copy it and pass to other players.
+
+[<img src="static_files/game_id.png" width="150"/>](static_files/game_id.png)
+
+To join the game enter the code in the field and hit `join game`.
+
+[<img src="static_files/join_game.png" width="250"/>](static_files/join_game.png)
+
+To start the game you need at least three players.
+
+[<img src="static_files/start_game.png" width="250"/>](static_files/start_game.png)
+
+You can choose your username as long as it's unique.
+Alternatively, you can go with the random one prepared by us (leave username field empty).
+
+#### Game duration
+
+The game has a random amount of turns, between 3 and 15. In the picture below it's 12 turns.
+
+[<img src="static_files/turns.png" width="150"/>](static_files/turns.png)
+
+The turn duration is picked at random too. It might be either 30 or 60 seconds.
+
+## Gameplay
+
+### General
+
+#### Drawing
+
+As a drawer, each turn you must draw a word displayed on your screen so others can guess it.
+
+##### Drawing tools
+
+You have 4 tools available to draw:
+- free-hand line
+- rectangle (filled)
+- frame (not filled)
+- eraser
+
+You can also randomly pick a color by clicking on color picker as well as increase/decrease the line width.
+
+[<img src="static_files/tools.png" width="150"/>](static_files/tools.png)
+
+#### Guessing
+
+Other players can guess the phrase by typing the message in the chat.
+
+[<img src="static_files/chat.png" width="250"/>](static_files/chat.png)
+
+The first person typing the correct word(s) wins.
+
+[<img src="static_files/win.png" width="250"/>](static_files/win.png)
+
+The winner will be the player who correctly guesses most of the words.
+
+The drawer cannot post the answer in the chat, it will be censored for other players.
+
+[<img src="static_files/censor.png" width="250"/>](static_files/censor.png)
+
+### Bugs / Tricks
+
+During each turn, with a slight delay, you are more than sure to be attacked by Dirty Goblin that surely doesn't want to help you!
+
+[<img src="static_files/goblin.png" width="250"/>](static_files/goblin.png)
+
+There are four tricks he can spawn on your canvas.
+- You got __Earthquake__? Don't worry! It's just your canvas that is moving. Your drawings might be a little more inaccurate, but trust me, they will become a piece of art!
+- Did your canvas jump through the whole screen? That must be __Landslide__. Keep in mind that others still see the picture in its starting position. So bow your head and keep drawing!
+- I hope you have a lot of patience. You will need all of it to fight __Pacman__. He forgot to eat breakfast and now he feels like eating your drawing. Keep restoring your picture, otherwise, you will be in huge trouble
+- If you want to slow down a bit __Snail__ will be perfect for you. Draw too fast and it will struggle to keep up and start taking shortcuts making your drawing angular - almost impossible to recognize
+- Sometimes, you will be able to draw peacefully. Even our Dirty Goblin needs to take a rest from his little tricks. Don't worry! He will be back sooner than you think ;)
+
+## Dependencies
+
+To run the project you need `python 3.10.*` installed.
+
+For dependency management and virtualenv creation `poetry` needs to be installed.
+
+The project client was build with:
+- `kivy`
+- `websockets`
+
+The server is based on:
+- `FastAPI`
+- `pydantic`
+- `uvicorn`
+
+## Launching the game
+
+### Install dependencies
+
+Navigate to the project root and run the following command.
+
+This will install all required dependencies in a new env.
+
+```bash
+poetry install
+```
+
+### Server
+
+Run the `FastAPI` server through `uvicorn`.
+
+Add `--reload` flag if you want to reload the server on file changes.
+
+By default, server starts at http://127.0.0.1:8000
+
+```bash
+poetry run uvicorn codejam.server:app --reload
+```
+
+### Clients
+Start the clients in separate windows.
+
+Remember that you need at least 3 players to start the game, so when running at local you need to start 3 separate clients.
+
+One of the clients needs to start the game and share the game id that other clients use as code to join the game.
+
+For details see section gameplay above.
+
+```bash
+poetry run python codejam/client/client.py
+```
+
+## Project Setup (development)
 
 1. Install python 3.10.X: [Download](https://www.python.org/downloads/)
 2. Install poetry (note that poetry is installed globally) [Installation](https://python-poetry.org/docs/#installation)
@@ -34,75 +182,3 @@ poetry run pre-commit run --all-files
 ```
 poetry run pytest tests --cov=codejam --cov=tests --cov-report=term-missing
 ```
-
-## Project launch
-Run the server
-```bash
-poetry run uvicorn codejam.server.application:app --reload
-```
-
-Start the clients in separate windows
-```bash
-poetry run python codejam/client/client.py
-```
-
-## Tools brief summary
-
-### flake8: general style rules
-
-Our first and probably most important tool is flake8. It will run a set of plugins on your codebase and warn you about any non-conforming lines.
-Here is a sample output:
-```
-~> flake8
-./app.py:1:6: N802 function name 'helloWorld' should be lowercase
-./app.py:1:16: E201 whitespace after '('
-./app.py:2:1: D400 First line should end with a period
-./app.py:2:1: D403 First word of the first line should be properly capitalized
-./app.py:3:19: E225 missing whitespace around operator
-```
-
-Each line corresponds to an error. The first part is the file path, then the line number, and the column index.
-Then comes the error code, a unique identifier of the error, and then a human-readable message.
-
-If, for any reason, you do not wish to comply with this specific error on a specific line, you can add `# noqa: CODE` at the end of the line.
-For example:
-```python
-def helloWorld():  # noqa: N802
-    ...
-```
-will pass linting. Although we do not recommend ignoring errors unless you have a good reason to do so.
-
-It is run by calling `flake8` in the project root.
-
-#### Plugin List:
-
-- `flake8-docstring`: Checks that you properly documented your code.
-
-### ISort: automatic import sorting
-
-This second tool will sort your imports according to the [PEP8](https://www.python.org/dev/peps/pep-0008/#imports). That's it! One less thing for you to do!
-
-It is run by calling `isort .` in the project root. Notice the dot at the end, it tells ISort to use the current directory.
-
-### Pre-commit: run linting before committing
-
-This third tool doesn't check your code, but rather makes sure that you actually *do* check it.
-
-It makes use of a feature called [Git hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) which allow you to run a piece of code before running `git commit`.
-The good thing about it is that it will cancel your commit if the lint doesn't pass. You won't have to wait for Github Actions to report and have a second fix commit.
-
-It is *installed* by running `pre-commit install` and can be run manually by calling only `pre-commit`.
-
-[Lint before you push!](https://soundcloud.com/lemonsaurusrex/lint-before-you-push)
-
-#### Hooks List:
-
-- `check-toml`: Lints and corrects your TOML files.
-- `check-yaml`: Lints and corrects your YAML files.
-- `end-of-file-fixer`: Makes sure you always have an empty line at the end of your file.
-- `trailing-whitespaces`: Removes whitespaces at the end of each line.
-- `python-check-blanket-noqa`: Forbids you from using noqas on large pieces of code.
-- `isort`: Runs ISort.
-- `flake8`: Runs flake8.
-- `mypy`: Runs mypy type checking
-- `black`: Runs black code formatter
