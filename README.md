@@ -83,9 +83,12 @@ The drawer cannot post the answer in the chat, it will be censored for other pla
 
 [<img src="static_files/censor.png" width="250"/>](static_files/censor.png)
 
-### Bugs / Tricks
 
-During each turn, with a slight delay, you are more than sure to be attacked by Dirty Goblin that surely doesn't want to help you!
+### *It's not a bug, it's a feature.*
+
+We approached the code jam theme by implementing intentional bugs into our application, that along the way were transformed into mischievous goblin attacks.
+
+Therefore, during each turn, with a slight delay, you are more than sure to be attacked by Dirty Goblin that surely doesn't want to help you!
 
 [<img src="static_files/goblin.png" width="250"/>](static_files/goblin.png)
 
@@ -135,6 +138,9 @@ By default, server starts at http://127.0.0.1:8000
 poetry run uvicorn codejam.server:app --reload
 ```
 
+If you edit the server config please update the url in the client.
+See the section Hosted server below.
+
 ### Clients
 Start the clients in separate windows.
 
@@ -146,6 +152,36 @@ For details see section gameplay above.
 
 ```bash
 poetry run python codejam/client/client.py
+```
+
+**Note that one of the tricky things we left in the game are client sizes. If each client window has a different size, each player will see a different portion of each other's canvas, so you can draw outside the view of other players! ;)**
+
+## Android Application
+
+The game is also available as an .apk file to install on your android device.
+
+The application is available here: <a id="raw-url" href="static_files/drawn-0.1.apk">Download APK</a>
+(alternatively you can download it from `static_files` folder in this github repo)
+
+## Hosted server
+
+The application is also hosted on heroku as a demo: `ws://cerebral-centaurs.herokuapp.com/ws/`
+
+The android client connects to this instance.
+
+You can use it for tests too if you want to play with your friends over the internet.
+
+You need to modify the url attribute in
+
+```python
+# file codejam/client/widgets/whiteboard_screen.py
+class WhiteBoardScreen(EventHandler):
+    """WhiteBoardScreen"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.url = "ws://127.0.0.1:8000/ws/{0}" # <= edit here
+
 ```
 
 ## Project Setup (development)
@@ -182,3 +218,7 @@ poetry run pre-commit run --all-files
 ```
 poetry run pytest tests --cov=codejam --cov=tests --cov-report=term-missing
 ```
+
+## Project development history visualised
+
+![](static_files/purple.gif)
